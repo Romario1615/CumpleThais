@@ -26,7 +26,7 @@
   let reviewIndex = 0;
   const resetDialog = $("#reset-dialog");
   const memoryNotes = [
-    "Hay momentos que se quedan para siempre. Y qué bonito que tú formes parte de ellos.",
+    "Hay momentos que se quedan para siempre, y hoy se suma uno más a la lista.",
     "Ojalá nunca falten las risas y las ganas de compartir buenos momentos.",
     "Todavía quedan muchos lugares por descubrir y recuerdos por inventar. Qué suerte celebrar contigo cada uno.",
     "Guarda esta frase contigo: hoy merezco cosas bonitas. Hoy, mañana y en cada vuelta al sol.",

@@ -9,7 +9,7 @@ window.BIRTHDAY_CONFIG = {
   // Cambia este identificador si quieres empezar una nueva edición desde cero.
   storageKey: "cumple-thais-2026-v1",
   gift: {
-    message: "Hoy celebramos tu vida, tu sonrisa y esa forma tan tuya de hacer que todo sea un poquito mejor. Ojalá este nuevo año te regale tantos momentos bonitos como los que tú le regalas a quienes te rodean. Y como el cariño también se puede envolver… hay algo más para ti.",
+    message: "Hoy celebramos tu cumpleaños y todo lo bueno que se viene en este nuevo año. Ojalá esté lleno de risas, buenos momentos y buena compañía. Y como los regalos también son parte de la fiesta… hay algo más para ti.",
     clue: "Donde los sueños empiezan y el día descansa, hay un abrazo suave que guarda algo para ti. Busca debajo de donde apoyas tu cabeza al dormir.",
     extraClue: "Mira debajo de tu almohada. Ahí te espera una sorpresa.",
     signature: "Con todo el cariño del mundo. ♡"

@@ -143,6 +143,7 @@
     function place(bubble, initial = false) {
       const sizes = width < 600 ? [44, 58, 76, 96] : [46, 72, 104, 140];
       bubble.baseSize = sizes[(bubble.index + bubble.generation) % sizes.length] + Math.random() * 10;
+      if (bubble.kind === bubbleKinds.star) bubble.baseSize *= 1.35;
       bubble.size = Math.min(bubble.baseSize, Math.max(44, width * .27));
       bubble.el.style.setProperty("--size", `${bubble.size}px`);
       bubble.el.style.setProperty("--bubble-opacity", bubble.size > 110 ? ".65" : ".9");

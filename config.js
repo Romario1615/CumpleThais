@@ -10,7 +10,7 @@ window.BIRTHDAY_CONFIG = {
   storageKey: "cumple-thais-2026-v1",
   gift: {
     message: "Hoy celebramos tu cumpleaños y todo lo bueno que se viene en este nuevo año. Ojalá esté lleno de risas, buenos momentos y buena compañía. Y como los regalos también son parte de la fiesta… hay algo más para ti.",
-    clue: "Donde los sueños empiezan y el día descansa, hay un abrazo suave que guarda algo para ti. Busca debajo de donde apoyas tu cabeza al dormir.",
+    clue: "Donde los sueños empiezan y el día descansa, hay un rincón suave que guarda algo para ti. Busca debajo de donde apoyas tu cabeza al dormir.",
     extraClue: "Mira debajo de tu almohada. Ahí te espera una sorpresa.",
     signature: "Con todo el cariño del mundo. ♡"
   },

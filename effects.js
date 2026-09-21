@@ -20,8 +20,8 @@
     const extraBubbleCount = width < 600 ? 3 : 5;
     const bubbleKinds = {
       heart: { className: "heart-bubble", label: "corazón" },
-      star: { className: "star-bubble", label: "estrella", symbol: "✦" },
-      gift: { className: "gift-bubble", label: "regalo", symbol: "🎁" },
+      star: { className: "star-bubble", label: "estrella", src: "assets/star-bubble.svg" },
+      gift: { className: "gift-bubble", label: "regalo", src: "assets/gift-bubble.svg" },
     };
     const isPaused = () => media.matches;
     const later = (callback, delay, collection = timers) => {
@@ -220,13 +220,11 @@
       const el = document.createElement("button");
       el.className = `floating-bubble ${kind.className}`; el.type = "button";
       el.setAttribute("aria-label", `Explotar ${kind.label} ${index + 1}`);
-      if (kind === bubbleKinds.heart) {
-        const heart = document.createElement("img");
-        heart.src = "assets/heart-bubble.svg"; heart.alt = ""; heart.draggable = false;
-        heart.setAttribute("aria-hidden", "true"); el.append(heart);
-      } else {
-        el.textContent = kind.symbol;
-      }
+      const bubbleImage = document.createElement("img");
+      bubbleImage.src = kind.src || "assets/heart-bubble.svg";
+      bubbleImage.alt = ""; bubbleImage.draggable = false;
+      bubbleImage.setAttribute("aria-hidden", "true");
+      el.append(bubbleImage);
       el.style.setProperty("--bob-delay", `${-Math.random() * 4}s`);
       const bubble = { el, kind, size: 0, baseSize: 0, index, generation: 0, x: 0, y: 0, vx: 0, vy: 0, age: 0, lifetime: 0, phase: "floating" };
       place(bubble, initial);

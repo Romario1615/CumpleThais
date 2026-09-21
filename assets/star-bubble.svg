@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="starFill" cx="36%" cy="24%" r="78%"><stop offset="0" stop-color="#fffdf2" stop-opacity=".98"/><stop offset=".3" stop-color="#ffe59a" stop-opacity=".96"/><stop offset=".75" stop-color="#efb82f" stop-opacity=".92"/><stop offset="1" stop-color="#c98a18" stop-opacity=".9"/></radialGradient>
+    <linearGradient id="starShine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".86"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="starShadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#b77716" flood-opacity=".28"/></filter>
+  </defs>
+  <path filter="url(#starShadow)" d="m64 8 14.2 30.8 33.6 4.2-24.6 23 6.2 33.4L64 83.2 34.6 99.4l6.2-33.4-24.6-23 33.6-4.2Z" fill="url(#starFill)" stroke="#f7d778" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="m51 34 11-16 4 17-12 13-12-3Z" fill="url(#starShine)" opacity=".7"/>
+  <ellipse cx="82" cy="83" rx="9" ry="4" fill="#fff" opacity=".22" transform="rotate(-24 82 83)"/>
+</svg>

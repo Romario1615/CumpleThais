@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="giftFill" cx="31%" cy="18%" r="84%"><stop offset="0" stop-color="#fffaff" stop-opacity=".98"/><stop offset=".3" stop-color="#efc9fb" stop-opacity=".96"/><stop offset=".77" stop-color="#bb70d1" stop-opacity=".94"/><stop offset="1" stop-color="#8d4ca6" stop-opacity=".9"/></radialGradient>
+    <linearGradient id="giftRibbon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff1fb"/><stop offset=".5" stop-color="#f29acb"/><stop offset="1" stop-color="#c45298"/></linearGradient>
+    <linearGradient id="giftShine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".82"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="giftShadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#7e3b98" flood-opacity=".28"/></filter>
+  </defs>
+  <path filter="url(#giftShadow)" d="M22 47h84v58a10 10 0 0 1-10 10H32a10 10 0 0 1-10-10Z" fill="url(#giftFill)" stroke="#dfa9ec" stroke-width="2.5"/>
+  <path d="M18 40a6 6 0 0 1 6-6h80a6 6 0 0 1 6 6v14H18Z" fill="url(#giftFill)" stroke="#dfa9ec" stroke-width="2.5"/>
+  <path d="M59 34h10v81H59z" fill="url(#giftRibbon)" opacity=".94"/>
+  <path d="M18 47h92v10H18z" fill="url(#giftRibbon)" opacity=".94"/>
+  <path d="M64 34c-7-18-28-20-30-8-2 13 20 15 30 8Zm0 0c7-18 28-20 30-8 2 13-20 15-30 8Z" fill="url(#giftRibbon)" stroke="#d874ac" stroke-width="2"/>
+  <path d="M37 43c4-7 11-11 18-10" fill="none" stroke="url(#giftShine)" stroke-linecap="round" stroke-width="5" opacity=".7"/>
+  <ellipse cx="87" cy="95" rx="12" ry="5" fill="#fff" opacity=".2" transform="rotate(-24 87 95)"/>
+</svg>

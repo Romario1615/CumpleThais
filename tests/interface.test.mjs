@@ -257,6 +257,8 @@ test('las burbujas flotantes incluyen corazones, estrellas y regalos', () => {
     assert.ok(gifts.length > 0, 'hay burbujas de regalo');
     assert.ok([...stars].every(node => node.getAttribute('aria-label').startsWith('Explotar estrella')));
     assert.ok([...gifts].every(node => node.getAttribute('aria-label').startsWith('Explotar regalo')));
+    assert.ok([...stars].every(node => node.querySelector('img[src="assets/star-bubble.svg"]')));
+    assert.ok([...gifts].every(node => node.querySelector('img[src="assets/gift-bubble.svg"]')));
     assert.equal([...stars, ...gifts].some(node => node.classList.contains('heart-bubble')), false);
   } finally { page.dom.window.close(); }
 });

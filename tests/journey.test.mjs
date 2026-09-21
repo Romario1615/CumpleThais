@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../core.js';
-const { createJourney, normalize, shuffle } = globalThis.BirthdayEngine;
+const { createJourney, createExperience, normalize, shuffle } = globalThis.BirthdayEngine;
 
 test('las etapas y la sorpresa solo se abren en orden', () => {
   const game = createJourney();
@@ -86,6 +86,83 @@ test('barajar conserva exactamente las parejas sin modificar el original', () =>
   const input = [1, 1, 2, 2, 3, 3, 4, 4];
   const result = shuffle(input, () => .37);
   assert.notDeepEqual(result, input);
-  assert.deepEqual([...result].sort(), input);
+  assert.deepEqual([...result].sort((a, b) => a - b), input);
   assert.deepEqual(input, [1, 1, 2, 2, 3, 3, 4, 4]);
+});
+
+test('la bienvenida lleva al primer reto y el recuerdo se abre antes de continuar', () => {
+  const game = createJourney();
+  const flow = createExperience(game);
+  assert.equal(flow.screen(), 'welcome');
+  assert.equal(flow.openMemory(), false);
+  assert.equal(flow.continueJourney(), false);
+  assert.equal(flow.openSurprise(), false);
+  flow.begin();
+  assert.equal(flow.screen(), 'challenge');
+  game.start(0);
+  for (const heart of [0, 3, 5, 8, 10]) game.act('heart', heart);
+  game.complete();
+  assert.equal(flow.screen(), 'reward');
+  assert.equal(flow.continueJourney(), false, 'no se puede saltar el recuerdo cerrado');
+  assert.equal(flow.openSurprise(), false);
+  assert.equal(flow.openMemory(), true);
+  assert.equal(flow.screen(), 'reward', 'abrir no cambia de pantalla automáticamente');
+  assert.equal(flow.continueJourney(), true);
+  assert.equal(flow.screen(), 'challenge');
+  assert.equal(game.snapshot().completed, 1);
+});
+
+test('recargar conserva el recuerdo pendiente, abierto o ya leído', () => {
+  let game = createJourney();
+  let flow = createExperience(game);
+  flow.begin(); game.start(0);
+  for (const heart of [0, 3, 5, 8, 10]) game.act('heart', heart);
+  game.complete();
+  const reload = () => {
+    const saved = JSON.parse(JSON.stringify({ ...game.snapshot(), experience: flow.snapshot() }));
+    game = createJourney(saved);
+    flow = createExperience(game, saved.experience);
+  };
+  reload();
+  assert.equal(flow.screen(), 'reward');
+  assert.equal(flow.snapshot().memoriesOpened, 0);
+  flow.openMemory(); reload();
+  assert.equal(flow.screen(), 'reward');
+  assert.equal(flow.snapshot().memoriesOpened, 1);
+  flow.continueJourney(); reload();
+  assert.equal(flow.screen(), 'challenge');
+  assert.equal(flow.snapshot().memoriesSeen, 1);
+});
+
+test('el último recuerdo desbloquea el álbum y el álbum da paso al regalo', () => {
+  const game = createJourney({ completed: 3 });
+  const flow = createExperience(game);
+  game.start(3);
+  for (const word of [0, 1, 2, 3]) game.act('word', word);
+  game.complete();
+  assert.equal(flow.screen(), 'reward');
+  assert.equal(flow.openSurprise(), false);
+  flow.openMemory(); flow.continueJourney();
+  assert.equal(flow.screen(), 'album');
+  assert.equal(flow.openSurprise(), true);
+  assert.equal(flow.screen(), 'surprise');
+  assert.equal(game.reveal(), true);
+  const restored = createJourney(game.snapshot());
+  assert.equal(createExperience(restored, flow.snapshot()).screen(), 'surprise');
+  assert.equal(restored.snapshot().revealed, true);
+});
+
+test('el progreso anterior se conserva y los valores nuevos inválidos no abren etapas', () => {
+  const legacy = createJourney({ completed: 2 });
+  assert.equal(createExperience(legacy).screen(), 'challenge');
+  assert.equal(createExperience(legacy).snapshot().memoriesSeen, 2);
+  for (const invalid of [-1, 99, '4', 1.5, null]) {
+    const game = createJourney();
+    const flow = createExperience(game, { memoriesOpened: invalid, memoriesSeen: invalid, albumSeen: true });
+    assert.equal(flow.screen(), 'welcome');
+    flow.begin();
+    assert.equal(flow.screen(), 'challenge');
+    assert.equal(flow.snapshot().memoriesOpened, 0);
+    assert.equal(flow.openSurprise(), false);
+  }
 });

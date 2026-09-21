@@ -78,5 +78,42 @@
     function cancel() { round = null; }
     return { snapshot, start, act, settleMemory, resetWords, complete, reveal, cancel };
   }
-  root.BirthdayEngine = Object.freeze({ createJourney, normalize, shuffle, WORDS, TOTAL, isHeart: index => HEARTS.has(index) });
+  // La presentación también tiene pasos: resolver, abrir el recuerdo y continuar.
+  // Se conserva aparte del intento para poder retomar una sorpresa sin saltársela.
+  function createExperience(journey, saved) {
+    const initial = journey.snapshot();
+    const validCount = (value, fallback) => Number.isInteger(value) && value >= 0 && value <= initial.completed ? value : fallback;
+    const legacyCount = saved == null ? initial.completed : 0;
+    let started = saved?.started === true || initial.completed > 0;
+    let memoriesSeen = validCount(saved?.memoriesSeen, legacyCount);
+    let memoriesOpened = Math.max(memoriesSeen, validCount(saved?.memoriesOpened, legacyCount));
+    let albumSeen = initial.completed === TOTAL && (saved?.albumSeen === true || initial.revealed);
+    function screen() {
+      const { completed, revealed } = journey.snapshot();
+      if (!started) return "welcome";
+      if (revealed) return "surprise";
+      if (completed > memoriesSeen) return "reward";
+      if (completed < TOTAL) return "challenge";
+      return albumSeen ? "surprise" : "album";
+    }
+    function begin() { started = true; }
+    function openMemory() {
+      if (screen() !== "reward") return false;
+      memoriesOpened = journey.snapshot().completed;
+      return true;
+    }
+    function continueJourney() {
+      if (screen() !== "reward" || memoriesOpened !== journey.snapshot().completed) return false;
+      memoriesSeen = memoriesOpened;
+      return true;
+    }
+    function openSurprise() {
+      if (screen() !== "album" && screen() !== "surprise") return false;
+      albumSeen = true;
+      return true;
+    }
+    const snapshot = () => ({ started, memoriesSeen, memoriesOpened, albumSeen });
+    return { snapshot, screen, begin, openMemory, continueJourney, openSurprise };
+  }
+  root.BirthdayEngine = Object.freeze({ createJourney, createExperience, normalize, shuffle, WORDS, TOTAL, isHeart: index => HEARTS.has(index) });
 })(globalThis);

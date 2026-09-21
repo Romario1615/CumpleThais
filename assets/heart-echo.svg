@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 8 56 46" fill="none">
+  <!-- Seis contornos de la misma silueta que el favicon y las burbujas. -->
+  <defs>
+    <path id="heart" d="M32 49 13 30C2 17 19 7 32 21 45 7 62 17 51 30Z"/>
+  </defs>
+  <g stroke="#d64d86" stroke-width=".65" stroke-linejoin="round">
+    <use href="#heart" transform="translate(32 31.5) scale(.47) translate(-32 -31.5)" opacity=".78"/>
+    <use href="#heart" transform="translate(32 31.5) scale(.59) translate(-32 -31.5)" opacity=".62"/>
+    <use href="#heart" transform="translate(32 31.5) scale(.71) translate(-32 -31.5)" opacity=".48"/>
+    <use href="#heart" transform="translate(32 31.5) scale(.83) translate(-32 -31.5)" opacity=".35"/>
+    <use href="#heart" transform="translate(32 31.5) scale(.95) translate(-32 -31.5)" opacity=".23"/>
+    <use href="#heart" transform="translate(32 31.5) scale(1.07) translate(-32 -31.5)" opacity=".12"/>
+  </g>
+</svg>

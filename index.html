@@ -10,26 +10,36 @@
   <link rel="stylesheet" href="styles.css">
   <script src="config.js" defer></script>
   <script src="core.js" defer></script>
+  <script src="effects.js" defer></script>
+  <script src="mascot.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#camino">Saltar al recorrido</a>
+  <a class="skip-link" href="#inicio">Saltar al contenido</a>
   <header class="site-header">
     <a class="brand" href="#inicio" aria-label="Volver al inicio"><span class="brand-symbol" aria-hidden="true">✳</span> el día de <span data-name>Thais</span><span class="brand-dot">.</span></a>
-    <div class="header-progress"><span id="progress-label">0 de 4 retos</span><progress id="journey-progress" value="0" max="4" aria-labelledby="progress-label"></progress><span class="small-heart" aria-hidden="true">♡</span></div>
+    <div class="header-progress" hidden><span id="progress-label">0 de 4 retos</span><progress id="journey-progress" value="0" max="4" aria-labelledby="progress-label"></progress><span class="small-heart" aria-hidden="true">♡</span></div>
   </header>
 
-  <main id="inicio">
-    <section class="hero section-width" aria-labelledby="hero-title">
+  <div class="mascot-dock" id="mascot-dock">
+    <aside class="mascot-companion" id="mascot-companion" aria-label="Tu compañera de aventura" data-gesture="wave" data-context="page"><span class="mascot-sprite" id="mascot-sprite" role="img" aria-label="Una niña saludando"></span><p class="mascot-message" id="mascot-message">¡Vamos juntas!</p></aside>
+  </div>
+  <main id="inicio" tabindex="-1">
+    <section class="hero section-width" data-screen="welcome" aria-labelledby="hero-title">
       <div class="hero-copy">
         <span class="eyebrow"><span class="tiny-star" aria-hidden="true">✦</span> EDICIÓN ESPECIAL: TU CUMPLEAÑOS</span>
         <h1 id="hero-title">Hoy el camino<br>lleva <em>a ti.</em><span class="title-spark" aria-hidden="true">✧</span></h1>
         <p class="hero-description">Hay personas que hacen la vida más bonita.<br>Y luego estás tú, <span data-name>Thais</span>.</p>
-        <p class="hero-invitation">Te espera un pequeño recorrido lleno de cariño.<br>Supera los retos y descubre lo que preparamos para ti.</p>
-        <button class="button button-primary" id="start-button">Empezar mi aventura <span aria-hidden="true">↗</span></button>
-        <p class="hero-footnote"><span aria-hidden="true">♡</span> Cuatro retos. Muchos recuerdos. Una gran sonrisa.</p>
+        <p class="hero-invitation">Esto se abre poquito a poquito.<br>Cada reto guarda un recuerdo. El último, una sorpresa.</p>
+        <button class="button button-primary path-action" id="start-button">Empezar mi aventura <span aria-hidden="true">↗</span></button>
+        <div class="welcome-options" id="welcome-options" hidden>
+          <button class="button button-secondary" id="review-button">Repasar retos y respuestas <span aria-hidden="true">♡</span></button>
+          <button class="text-button" id="reset-button">Reiniciar desde cero <span aria-hidden="true">↺</span></button>
+          <p class="welcome-progress-note" id="welcome-progress-note"></p>
+        </div>
+        <p class="hero-footnote"><span aria-hidden="true">♡</span> Toca los corazones que flotan… también tienen magia.</p>
       </div>
-      <div class="hero-collage" aria-label="Nuestros primeros recuerdos">
+      <div class="hero-collage" aria-label="Tus primeros recuerdos">
         <span class="collage-note">porque tú haces<br>especial lo cotidiano <span aria-hidden="true">↴</span></span>
         <figure class="polaroid hero-photo photo-one" data-photo="0"></figure>
         <figure class="polaroid hero-photo photo-two" data-photo="1"></figure>
@@ -39,28 +49,37 @@
       </div>
     </section>
 
-    <div class="ribbon" aria-hidden="true"><span>UN DÍA TAN BONITO COMO TÚ</span><i>✦</i><span>HOY CELEBRAMOS TU VIDA</span><i>✦</i><span>LO MEJOR ESTÁ POR VENIR</span><i>✦</i><span>UN DÍA TAN BONITO COMO TÚ</span></div>
+    <div class="ribbon" id="welcome-ribbon" aria-hidden="true"><span>UN DÍA TAN BONITO COMO TÚ</span><i>✦</i><span>HOY CELEBRAMOS TU VIDA</span><i>✦</i><span>LO MEJOR ESTÁ POR VENIR</span><i>✦</i><span>UN DÍA TAN BONITO COMO TÚ</span></div>
 
-    <section class="journey-section section-width" id="camino" aria-labelledby="journey-title">
-      <div class="section-heading"><span class="eyebrow">SIGUE LOS CORAZONES</span><h2 id="journey-title">Cada paso, <em>más cerca.</em></h2><p>Un reto a la vez. La sorpresa sabe esperar.</p></div>
+    <section class="review-section section-width" id="repaso" data-screen="review" aria-labelledby="review-title" hidden>
+      <div class="section-heading"><span class="eyebrow" id="review-eyebrow">UN CAMINO QUE YA CONOCES</span><h2 id="review-title">Tus retos, <em>otra vez.</em></h2><p>Vuelve a recorrer los retos que completaste y descubre sus respuestas.</p></div>
+      <nav class="review-tabs" id="review-tabs" aria-label="Elegir un reto completado"></nav>
+      <article class="review-card"><p class="review-prompt" id="review-prompt"></p><div class="review-answer" id="review-answer"></div></article>
+      <div class="review-navigation"><button class="button button-secondary" id="review-previous"><span aria-hidden="true">←</span> Anterior</button><button class="button button-primary path-action" id="review-next">Siguiente reto <span aria-hidden="true">→</span></button></div>
+      <div class="screen-actions"><button class="text-button" id="review-resume">Continuar mi aventura <span aria-hidden="true">↗</span></button></div>
+    </section>
+
+    <section class="journey-section section-width" id="camino" data-screen="challenge" aria-labelledby="journey-title" hidden>
+      <div class="section-heading"><span class="eyebrow" id="chapter-label">CAPÍTULO 01 DE 04</span><h2 id="journey-title">Cada paso, <em>más cerca.</em></h2><p id="chapter-description">Tu primer recuerdo está al otro lado de este reto.</p></div>
+      <ol class="chapter-track" id="chapter-track" aria-label="Progreso de los cuatro capítulos"></ol>
       <div class="journey" id="journey">
         <div class="path-line" aria-hidden="true"></div>
         <article class="stage is-current" data-stage="0">
           <div class="stage-pin" aria-hidden="true">01</div>
-          <div class="stage-card"><div class="stage-top"><span class="stage-icon" aria-hidden="true">♡</span><span class="stage-status">TU PRIMER PASO</span></div><h3>Un poquito de amor</h3><p>Hay cinco corazones esperando que los encuentres. ¿Nos ayudas a reunirlos?</p><button class="stage-button" data-open="0">Encontrar los corazones <span aria-hidden="true">↗</span></button></div>
-          <div class="path-note">todo empieza<br>con un poquito de amor <span aria-hidden="true">♡</span></div>
+          <div class="stage-card"><div class="stage-top"><span class="stage-icon" aria-hidden="true">♡</span><span class="stage-status">TU PRIMER PASO</span></div><h3>Un poquito de cariño</h3><p>Hay cinco corazones esperando que los encuentres. ¿Nos ayudas a reunirlos?</p><button class="stage-button" data-open="0">Encontrar los corazones <span aria-hidden="true">↗</span></button></div>
+          <div class="path-note">todo empieza<br>con un poquito de cariño <span aria-hidden="true">♡</span></div>
         </article>
-        <article class="stage is-locked" data-stage="1">
+        <article class="stage is-locked" data-stage="1" hidden>
           <div class="stage-pin" aria-hidden="true">02</div>
           <div class="stage-card"><div class="stage-top"><span class="stage-icon" aria-hidden="true">❀</span><span class="stage-status">POR DESCUBRIR</span></div><h3>Las cosas que conectan</h3><p>Algunas cosas simplemente van juntas. Encuentra las parejas de este pequeño juego.</p><button class="stage-button" data-open="1" disabled>Completa el reto anterior <span data-lock></span></button></div>
           <div class="path-note">como tú y<br>los días bonitos <span aria-hidden="true">✧</span></div>
         </article>
-        <article class="stage is-locked" data-stage="2">
+        <article class="stage is-locked" data-stage="2" hidden>
           <div class="stage-pin" aria-hidden="true">03</div>
           <div class="stage-card"><div class="stage-top"><span class="stage-icon" aria-hidden="true">✧</span><span class="stage-status">POR DESCUBRIR</span></div><h3>La palabra secreta</h3><p>Una pequeña adivinanza guarda el siguiente paso. La respuesta tiene mucho que ver contigo.</p><button class="stage-button" data-open="2" disabled>Completa el reto anterior <span data-lock></span></button></div>
           <div class="path-note">una pista:<br>hoy eres la protagonista <span aria-hidden="true">↙</span></div>
         </article>
-        <article class="stage is-locked" data-stage="3">
+        <article class="stage is-locked" data-stage="3" hidden>
           <div class="stage-pin" aria-hidden="true">04</div>
           <div class="stage-card"><div class="stage-top"><span class="stage-icon" aria-hidden="true">☼</span><span class="stage-status">POR DESCUBRIR</span></div><h3>Algo que debes recordar</h3><p>Ordena una frase que queremos regalarte. Llévala contigo hoy y todos los días.</p><button class="stage-button" data-open="3" disabled>Completa el reto anterior <span data-lock></span></button></div>
           <div class="path-note">ya casi puedes<br>tocar la sorpresa <span aria-hidden="true">♡</span></div>
@@ -68,23 +87,53 @@
         <div class="path-finish" aria-hidden="true">♡</div>
       </div>
       <p class="journey-reassurance" id="journey-reassurance">Sin prisa, sin perder: puedes intentarlo todas las veces que quieras.</p>
+      <div class="screen-actions"><button class="text-button muted-button" data-home>Volver a la bienvenida</button></div>
     </section>
 
-    <section class="memories-section" aria-labelledby="memories-title"><div class="section-width">
-      <div class="memories-heading"><div><span class="eyebrow">PEQUEÑOS MOMENTOS, MUCHO AMOR</span><h2 id="memories-title">Nuestro rincón de <em>recuerdos.</em></h2></div><p>Si la felicidad tuviera forma,<br>se parecería a estos momentos.</p></div>
+    <section class="reward-section section-width" id="recuerdo" data-screen="reward" aria-labelledby="reward-title" hidden>
+      <div class="section-heading"><span class="eyebrow" id="reward-eyebrow">RECUERDO 01 DESBLOQUEADO</span><h2 id="reward-title">Un pedacito de <em>este día.</em></h2><p id="reward-description">Hay algo bonito guardado aquí. Toca para abrirlo.</p></div>
+      <div class="reward-keepsake">
+        <button class="memory-seal path-action" id="unwrap-memory" aria-expanded="false" aria-controls="unwrapped-memory"><span class="seal-symbol" aria-hidden="true">♡</span><span class="eyebrow">SOLO PARA TI</span><span class="seal-title">Un recuerdo te espera</span><span class="seal-action">Toca para descubrirlo <span aria-hidden="true">↗</span></span></button>
+        <div class="unwrapped-memory" id="unwrapped-memory" hidden><figure class="polaroid reward-photo" id="reward-photo"></figure><p class="reward-note" id="reward-note"></p></div>
+      </div>
+      <div class="screen-actions"><p class="unlock-caption" id="reward-next-hint">Abre tu recuerdo para seguir el camino.</p><button class="button button-primary path-action" id="next-chapter" disabled>Continuar mi aventura <span aria-hidden="true">↗</span></button><button class="text-button muted-button" data-home>Guardar este momento y volver al inicio</button></div>
+    </section>
+
+    <section class="memories-section" id="recuerdos" data-screen="album" aria-labelledby="memories-title" hidden><div class="section-width">
+      <div class="memories-heading"><div><span class="eyebrow">PEQUEÑOS MOMENTOS, MUCHO CARIÑO</span><h2 id="memories-title">Tu rincón de <em>recuerdos.</em></h2></div><p>Si la felicidad tuviera forma,<br>se parecería a estos momentos.</p></div>
       <div class="memory-collage"><figure class="polaroid memory-photo" data-photo="3"></figure><figure class="polaroid memory-photo" data-photo="4"></figure><figure class="polaroid memory-photo" data-photo="5"></figure><figure class="polaroid memory-photo" data-photo="6"></figure><figure class="polaroid memory-photo" data-photo="7"></figure></div>
-      <p class="memory-signoff">y todos los que nos faltan por vivir… <span aria-hidden="true">♡</span></p>
+      <p class="memory-signoff">y todos los que están por venir… <span aria-hidden="true">♡</span></p>
+      <div class="screen-actions"><p class="unlock-caption">Toca cada recuerdo para leer lo que guarda.</p><button class="button button-primary path-action" id="album-continue">Ahora sí, ir a mi sorpresa <span aria-hidden="true">↗</span></button></div>
     </div></section>
 
-    <section class="surprise-section section-width" id="sorpresa" aria-labelledby="surprise-title">
-      <div class="surprise-box" id="surprise-box"><span class="surprise-icon" id="surprise-icon" aria-hidden="true">✧</span><span class="eyebrow" id="surprise-eyebrow">EL ÚLTIMO PASO ES EL MÁS BONITO</span><h2 id="surprise-title">Lo mejor está <em>por abrirse.</em></h2><p id="surprise-description">Al final de este camino hay algo que lleva tu nombre.<br>Y no, todavía no te vamos a contar qué es.</p><button class="button button-primary" id="reveal-button" disabled><span data-lock></span><span id="reveal-label">Completa los 4 retos</span></button><span class="surprise-count" id="surprise-count">Tu sorpresa está a 4 pequeños pasos.</span></div>
-      <article class="gift-reveal" id="gift-reveal" hidden><span class="eyebrow">ESTO ES SOLO EL COMIENZO</span><h2>¡Feliz cumpleaños,<br><em data-name>Thais</em>!</h2><p class="gift-message" id="gift-message"></p><div class="clue-card"><span class="eyebrow">TU REGALO TE ESTÁ ESPERANDO</span><h3>Una última pista…</h3><p id="gift-clue"></p><button class="text-button" id="extra-clue-button">Necesito una pista más <span aria-hidden="true">↗</span></button><p id="extra-clue" hidden></p></div><p class="gift-signature" id="gift-signature"></p><button class="button button-secondary" id="celebrate-button">Un poquito más de confeti <span aria-hidden="true">✦</span></button></article>
+    <section class="surprise-section section-width" id="sorpresa" data-screen="surprise" aria-labelledby="surprise-title" hidden>
+      <div class="surprise-box" id="surprise-box"><span class="eyebrow" id="surprise-eyebrow">EL ÚLTIMO PASO ES EL MÁS BONITO</span><h2 id="surprise-title">Lo mejor está <em>por abrirse.</em></h2><p id="surprise-description">Al final de este camino hay algo que lleva tu nombre.<br>Y no, todavía no te vamos a contar qué es.</p><button class="button gift-trigger path-action" id="reveal-button" aria-describedby="surprise-count" disabled><span class="surprise-icon" id="surprise-icon" aria-hidden="true">🎁</span><span class="gift-trigger-caption"><span data-lock aria-hidden="true"></span><span id="reveal-label">Completa los 4 retos</span><span aria-hidden="true">↗</span></span></button><span class="surprise-count" id="surprise-count">Tu sorpresa está a 4 pequeños pasos.</span></div>
+      <article class="gift-reveal" id="gift-reveal" hidden>
+        <div class="finale-parade" aria-hidden="true"><span>💖</span><span>🎁</span><span>🎂</span><span>🎁</span><span>💖</span></div>
+        <span class="eyebrow">HOY TODO LO BONITO ES PARA TI</span>
+        <h2>¡Feliz cumpleaños,<br><em data-name>Thais</em>!</h2>
+        <p class="gift-message" id="gift-message"></p>
+        <div class="clue-card"><span class="eyebrow">TU REGALO TE ESTÁ ESPERANDO</span><h3>Una última pista…</h3><p id="gift-clue"></p><button class="text-button" id="extra-clue-button">Necesito una pista más <span aria-hidden="true">↗</span></button><p id="extra-clue" hidden></p></div>
+        <p class="gift-signature" id="gift-signature"></p>
+        <button class="button button-primary path-action" id="celebrate-button">¡Que siga la fiesta! <span aria-hidden="true">🎉</span></button>
+      </article>
+      <div class="screen-actions"><button class="text-button" id="back-to-memories">Volver a mis recuerdos <span aria-hidden="true">♡</span></button></div>
     </section>
   </main>
   <footer class="site-footer section-width"><span>Hecho con cariño, especialmente para <span data-name>Thais</span>.</span><span>Que la vida te abrace bonito. <span aria-hidden="true">♡</span></span></footer>
   <noscript><div class="noscript-note">Activa JavaScript para jugar y descubrir tu sorpresa de cumpleaños.</div></noscript>
 
-  <dialog id="challenge-dialog" aria-labelledby="challenge-title" aria-describedby="challenge-description"><div class="dialog-inner"><button class="icon-button close-dialog" id="close-dialog" aria-label="Pausar el reto y volver al camino">×</button><span class="eyebrow" id="challenge-eyebrow">RETO 01 DE 04</span><div class="dialog-dots" id="dialog-dots" aria-hidden="true"></div><h2 id="challenge-title"></h2><p id="challenge-description"></p><div id="challenge-content"></div><p class="game-feedback" id="game-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="dialog-actions"><button class="text-button" id="hint-button">Una ayudita <span aria-hidden="true">✧</span></button><button class="text-button muted-button" id="pause-button">Seguir luego</button></div></div></dialog>
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div><div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
+  <dialog id="challenge-dialog" aria-labelledby="challenge-title" aria-describedby="challenge-description"><div class="dialog-inner"><button class="icon-button close-dialog" id="close-dialog" aria-label="Pausar el reto y volver al camino">×</button><span class="eyebrow" id="challenge-eyebrow">RETO 01 DE 04</span><div class="dialog-dots" id="dialog-dots" aria-hidden="true"></div><h2 id="challenge-title"></h2><p id="challenge-description"></p><div class="dialog-mascot-slot" id="dialog-mascot-slot"></div><div id="challenge-content"></div><p class="game-feedback" id="game-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="dialog-actions"><button class="text-button" id="hint-button">Una ayudita <span aria-hidden="true">✧</span></button><button class="text-button muted-button" id="pause-button">Seguir luego</button></div><button class="text-button dialog-home" data-home><span aria-hidden="true">←</span> Volver al inicio</button></div></dialog>
+  <button class="home-return" id="home-button" data-home hidden><span aria-hidden="true">←</span> Volver al inicio</button>
+  <dialog id="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description"><div class="dialog-inner">
+    <span class="eyebrow">UNA NUEVA VUELTA AL CAMINO</span><h2 id="reset-title">¿Volvemos a empezar?</h2>
+    <p id="reset-description">Se borrará tu avance guardado en este navegador. Los cuatro retos, los recuerdos y la sorpresa volverán a estar bloqueados.</p>
+    <div class="reset-actions"><button class="button button-secondary" id="cancel-reset" autofocus>Conservar mi avance</button><button class="button button-primary" id="confirm-reset">Sí, reiniciar desde cero</button></div>
+  </div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="bubble-layer" id="bubble-layer" role="group" aria-label="Burbujas flotantes: toca una para hacerla explotar"></div>
+  <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
+  <div class="burst-layer" id="burst-layer" aria-hidden="true"></div>
+  <div class="transition-sparkles" id="transition-sparkles" aria-hidden="true"></div>
 </body>
 </html>

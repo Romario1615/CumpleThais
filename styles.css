@@ -243,22 +243,22 @@ body:not([data-scene="welcome"]) .site-footer { padding-bottom: 78px; }
 .is-finale .gift-signature { animation: chapter-arrive .7s .7s both; }
 .is-finale #celebrate-button { animation: chapter-arrive .7s .9s both, action-glow 2.6s ease-in-out infinite; }
 /* Seis corazones concéntricos, cada vez más transparentes, laten dos veces. */
-.path-action { position: relative; isolation: isolate; overflow: visible; }
-.path-action:not(:disabled) { animation: action-glow 2.6s ease-in-out infinite; }
-.path-action:not(:disabled)::before {
-  content: ""; position: absolute; left: 50%; top: 50%; z-index: -1; pointer-events: none;
-  width: min(100%, 340px); aspect-ratio: 56 / 46;
-  background: url('assets/heart-echo.svg') center / contain no-repeat;
-  translate: -50% -50%; transform-origin: center;
-  animation: action-heartbeat 2.6s ease-in-out infinite;
+.path-action { position: relative; isolation: isolate; overflow: visible; transform-origin: center; }
+.path-action:not(:disabled) { animation: button-breathe 2.8s ease-in-out infinite; }
+.path-action:not(:disabled)::after {
+  content: ""; position: absolute; inset: -6px; z-index: -1; pointer-events: none;
+  border: 1px solid currentColor; border-radius: inherit; opacity: 0;
+  animation: button-ring 2.8s ease-out infinite;
 }
-.path-action:not(:disabled) > span[aria-hidden="true"]:last-child { animation: action-arrow 3s ease-in-out infinite; }
-.path-action:active { scale: .98; }
+.path-action:not(:disabled) > span[aria-hidden="true"]:last-child { animation: action-arrow 2.4s ease-in-out infinite; }
+.path-action:not(:disabled):hover, .path-action:not(:disabled):focus-visible { animation: button-nudge 1.6s ease-in-out infinite; transform: translateY(-3px) scale(1.015); }
+.path-action:not(:disabled):hover::after, .path-action:not(:disabled):focus-visible::after { animation: none; opacity: .35; }
+.path-action:active { transform: translateY(1px) scale(.97); transition: transform .1s ease; }
 .gift-trigger.button {
   flex-direction: column; gap: 18px; width: max-content; max-width: 100%; padding: 12px 14px 8px;
   border: 0; border-radius: 20px; color: var(--pink); background: transparent; box-shadow: none;
 }
-.gift-trigger.path-action:not(:disabled) { animation: none; }
+.gift-trigger.path-action:not(:disabled) { animation: button-breathe 2.8s ease-in-out infinite; }
 .gift-trigger-caption {
   display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px;
   min-height: 48px; max-width: 100%; border-radius: 999px; background: var(--pink); color: white;
@@ -269,13 +269,18 @@ body:not([data-scene="welcome"]) .site-footer { padding-bottom: 78px; }
 .gift-trigger:disabled .gift-trigger-caption { background: var(--pink-light); color: var(--muted); }
 .gift-trigger:focus-visible { outline: 3px solid var(--pink); outline-offset: 8px; }
 body.modal-open main .path-action, body.modal-open main .path-action > span { animation: none; }
-body.modal-open main .path-action::before { display: none; }
-@keyframes action-heartbeat {
-  0%, 52%, 100% { opacity: .55; transform: scale(.92); }
-  10% { opacity: .95; transform: scale(1.035); }
-  18% { opacity: .65; transform: scale(.96); }
-  28% { opacity: 1; transform: scale(1.1); }
-  40% { opacity: .7; transform: scale(.98); }
+body.modal-open main .path-action::after { display: none; }
+@keyframes button-breathe {
+  0%, 100% { box-shadow: 0 4px 12px #bd3f701a; }
+  50% { box-shadow: 0 8px 25px #d64d8640; }
+}
+@keyframes button-ring {
+  0%, 48%, 100% { opacity: 0; transform: scale(.94); }
+  18% { opacity: .28; transform: scale(1.015); }
+}
+@keyframes button-nudge {
+  0%, 100% { box-shadow: 0 8px 22px #d64d8640; }
+  50% { box-shadow: 0 11px 30px #d64d8660; }
 }
 @keyframes action-glow {
   0%, 18%, 52%, 100% { box-shadow: 0 4px 12px #bd3f701a; }
@@ -283,7 +288,8 @@ body.modal-open main .path-action::before { display: none; }
 }
 @keyframes action-arrow { 0%, 65%, 100% { translate: 0 0; } 35% { translate: 3px -3px; } }
 @media (prefers-reduced-motion: reduce) {
-  .path-action::before { display: none; }
+  .path-action:not(:disabled), .path-action:not(:disabled) > span[aria-hidden="true"]:last-child { animation: none; }
+  .path-action::after { display: none; }
 }
 @keyframes bubble-heartbeat { 0%, 100% { scale: .94; } 45% { scale: 1.08; } 65% { scale: 1; } }
 @keyframes bubble-pop { 0% { scale: 1; opacity: 1; } 40% { scale: 1.35; opacity: .9; } 100% { scale: 1.65; opacity: 0; } }

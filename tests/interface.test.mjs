@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
 const sources = await Promise.all(['config.js', 'core.js', 'effects.js', 'mascot.js', 'script.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
 const wait = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -19,6 +20,11 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
   window.HTMLElement.prototype.scrollIntoView = () => {};
   window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
   window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  if (options.styles) {
+    const stylesheet = window.document.createElement('style');
+    stylesheet.textContent = styles;
+    window.document.head.append(stylesheet);
+  }
   let advance;
   if (options.manualClock) {
     let clock = 1;
@@ -86,8 +92,42 @@ test('regresión: comenzar, volver y continuar mantienen visible una única pant
   } finally { page.dom.window.close(); }
 });
 
+test('el primer reto mantiene sus fichas en la cuadrícula y permite reunir los cinco corazones', () => {
+  const page = loadPage(undefined, false, undefined, { manualClock: true, styles: true });
+  try {
+    page.click('#start-button');
+    page.click('[data-open="0"]');
+    const tiles = [...page.document.querySelectorAll('.heart-tile')];
+    assert.equal(tiles.length, 15);
+    assert.equal(page.window.getComputedStyle(page.document.querySelector('#bubble-layer .heart-bubble')).position, 'absolute', 'se carga el CSS real de las burbujas');
+    assert.equal(page.window.getComputedStyle(tiles[0].parentElement).display, 'grid');
+    for (const tile of tiles) {
+      const style = page.window.getComputedStyle(tile);
+      assert.ok(!['absolute', 'fixed'].includes(style.position), `${tile.getAttribute('aria-label')} debe ocupar su propia celda`);
+      assert.equal(style.display, 'flex');
+      assert.notEqual(style.pointerEvents, 'none');
+      assert.notEqual(style.visibility, 'hidden');
+    }
+    page.click('.heart-tile[aria-label^="Estrella"]');
+    page.click('.heart-tile[aria-label^="Regalo"]');
+    assert.equal(page.document.querySelector('.game-counter').textContent, '0 de 5 corazones reunidos');
+    const hearts = tiles.filter(tile => tile.getAttribute('aria-label').startsWith('Corazón'));
+    hearts.forEach((heart, index) => {
+      heart.click();
+      heart.click();
+      assert.equal(page.document.querySelector('.game-counter').textContent, `${index + 1} de 5 corazones reunidos`);
+    });
+    page.advance(500);
+    page.click('.win-state button');
+    page.screen('reward');
+    assert.equal(page.snapshot().completed, 1);
+    assert.deepEqual(page.errors, []);
+  } finally { page.dom.window.close(); }
+});
+
 test('reiniciar borra el avance, persiste y permite completar de nuevo toda la aventura', async () => {
-  let page = loadPage({ completed: 4, revealed: true });
+  const withStyles = saved => loadPage(saved, true, undefined, { styles: true });
+  let page = withStyles({ completed: 4, revealed: true });
   try {
     page.screen('surprise');
     page.click('#extra-clue-button');
@@ -111,7 +151,7 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
     assert.equal(page.window.localStorage.getItem('otro-proyecto'), 'conservar');
     const cleanProgress = page.snapshot();
     assert.deepEqual(cleanProgress, { completed: 0, revealed: false, experience: { started: false, memoriesSeen: 0, memoriesOpened: 0, albumSeen: false } });
-    page.dom.window.close(); page = loadPage(cleanProgress); page.screen('welcome');
+    page.dom.window.close(); page = withStyles(cleanProgress); page.screen('welcome');
     page.click('#start-button');
     for (let stage = 0; stage < 4; stage++) {
       page.screen('challenge');
@@ -119,6 +159,13 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
       assert.equal(visible.length, 1);
       assert.equal(visible[0].dataset.stage, String(stage));
       page.click(`[data-open="${stage}"]`);
+      for (const control of page.document.querySelectorAll('#challenge-content button, #challenge-content input')) {
+        const style = page.window.getComputedStyle(control);
+        assert.ok(!['absolute', 'fixed'].includes(style.position), 'los controles permanecen en el contenido del reto');
+        assert.notEqual(style.display, 'none');
+        assert.notEqual(style.visibility, 'hidden');
+        assert.notEqual(style.pointerEvents, 'none');
+      }
       if (stage === 0) {
         assert.equal(page.document.querySelectorAll('.heart-tile[aria-label^="Corazón"]').length, 5);
         assert.equal(page.document.querySelectorAll('.heart-tile[aria-label^="Estrella"]').length, 5);
@@ -149,7 +196,7 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
       page.click('.win-state button'); page.screen('reward');
       assert.equal(page.document.querySelector('#next-chapter').disabled, true);
       if (stage === 0) {
-        const saved = page.snapshot(); page.dom.window.close(); page = loadPage(saved);
+        const saved = page.snapshot(); page.dom.window.close(); page = withStyles(saved);
         page.screen('reward');
         assert.equal(page.document.querySelector('#unwrapped-memory').hidden, true);
       }
@@ -173,7 +220,7 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
     page.click('#back-to-memories'); page.screen('album');
     page.click('#album-continue'); page.screen('surprise');
     assert.equal(page.document.activeElement.id, 'gift-title');
-    const saved = page.snapshot(); page.dom.window.close(); page = loadPage(saved);
+    const saved = page.snapshot(); page.dom.window.close(); page = withStyles(saved);
     page.screen('surprise');
     assert.equal(page.document.querySelector('#gift-reveal').hidden, false);
     assert.deepEqual(page.errors, []);

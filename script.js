@@ -121,6 +121,7 @@
     mascot.scene(name, name === "review" ? reviewIndex : journey.snapshot().completed, journey.snapshot().revealed);
     if (moveFocus) focusScreen();
     effects.refresh();
+    if (changed) effects.enterScene();
     if (changed && moveFocus) effects.transition(name === "surprise");
   }
   function renderReward() {

@@ -126,7 +126,7 @@ body[data-scene="surprise"] .surprise-box { padding-block: 54px; }
 
 /* Burbujas interactivas, ligeras y separadas de los controles del recorrido. */
 .bubble-layer, .burst-layer, .transition-sparkles { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-.bubble-layer { z-index: 12; }
+.bubble-layer { z-index: 0; opacity: .72; }
 .heart-bubble {
   position: absolute; top: 0; left: 0; width: var(--size); height: var(--size);
   padding: 0; border: 0; border-radius: 0; background: transparent;
@@ -328,6 +328,15 @@ body[data-motion="paused"] *, body[data-motion="paused"] *::before, body[data-mo
 }
 .floating-bubble.star-bubble { color: #d39b28; filter: drop-shadow(0 5px 7px #d39b2840); }
 .floating-bubble.gift-bubble { color: #9956ad; filter: drop-shadow(0 5px 7px #9956ad40); }
+.round-bubble-shape {
+  display: block; width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid #ffffff99;
+  background:
+    radial-gradient(circle at 28% 23%, #ffffffee 0 7%, #ffffff70 8% 14%, transparent 15%),
+    radial-gradient(circle at 37% 30%, #ffffff80 0 10%, transparent 28%),
+    var(--round-color);
+  box-shadow: inset -7px -9px 13px #7f3a5e3b, inset 8px 7px 11px #ffffff75, 0 5px 11px #7b38522e;
+}
 .floating-bubble > img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; animation: bubble-heartbeat 2.7s ease-in-out var(--bob-delay) infinite; transition: filter .2s; }
 .floating-bubble.star-bubble > img { filter: drop-shadow(0 5px 7px #d39b2840); }
 .floating-bubble.gift-bubble > img { filter: drop-shadow(0 5px 7px #9956ad40); }
@@ -335,4 +344,9 @@ body[data-motion="paused"] *, body[data-motion="paused"] *::before, body[data-mo
 .floating-bubble.gift-bubble:hover, .floating-bubble.gift-bubble:focus-visible { filter: drop-shadow(0 0 8px #d497e8) drop-shadow(0 6px 10px #9956ad60); }
 .floating-bubble.over-control { opacity: .16; }
 .floating-bubble.is-popping { pointer-events: none; animation: bubble-pop .42s ease-out forwards; opacity: 0; }
+.scene-entrance .floating-bubble { animation-duration: 1.5s; }
 @media (max-width: 540px) { .floating-bubble { font-size: clamp(27px, 8vw, 46px); } }
+
+/* Las burbujas viven en el fondo y la interfaz conserva una capa de lectura encima. */
+.site-header, main, .mascot-dock, .site-footer { position: relative; z-index: 2; }
+@media (prefers-reduced-motion: reduce) { .scene-entrance .floating-bubble { animation: none; } }

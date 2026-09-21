@@ -255,15 +255,19 @@ test('las burbujas flotantes incluyen corazones, estrellas y regalos', () => {
     const hearts = page.document.querySelectorAll('.heart-bubble');
     const stars = page.document.querySelectorAll('.star-bubble');
     const gifts = page.document.querySelectorAll('.gift-bubble');
+    const rounds = page.document.querySelectorAll('.round-bubble');
     assert.ok(hearts.length > 0, 'hay burbujas de corazón');
     assert.ok(stars.length > 0, 'hay burbujas de estrella');
     assert.ok(gifts.length > 0, 'hay burbujas de regalo');
+    assert.ok(rounds.length > 0, 'hay burbujas redondas');
     assert.equal(hearts.length, stars.length, 'hay la misma cantidad de corazones y estrellas');
     assert.equal(hearts.length, gifts.length, 'hay la misma cantidad de corazones y regalos');
+    assert.equal(hearts.length, rounds.length, 'hay la misma cantidad de cada forma');
     assert.ok([...stars].every(node => node.getAttribute('aria-label').startsWith('Explotar estrella')));
     assert.ok([...gifts].every(node => node.getAttribute('aria-label').startsWith('Explotar regalo')));
     assert.ok([...stars].every(node => node.querySelector('img[src="assets/star-bubble.svg"]')));
     assert.ok([...gifts].every(node => node.querySelector('img[src="assets/gift-bubble.svg"]')));
+    assert.ok([...rounds].every(node => node.querySelector('.round-bubble-shape')));
     assert.ok([...stars].every(node => parseFloat(node.style.getPropertyValue('--size')) >= 59), 'las estrellas son burbujas grandes');
     assert.equal([...stars, ...gifts].some(node => node.classList.contains('heart-bubble')), false);
   } finally { page.dom.window.close(); }

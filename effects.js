@@ -13,16 +13,18 @@
     const colors = ["#ee548e", "#ffd166", "#a781de", "#f394c1", "#79cdbb", "#c54376"];
     let frame = 0;
     let lastTime = 0;
+    let settleTimer = null;
     let width = window.innerWidth;
     let height = window.innerHeight;
     let protectedAreas = [];
     const bubbleCount = width < 600 ? 8 : 12;
-    // Cada familia mantiene la misma cantidad: corazones, estrellas y regalos.
-    const extraBubbleCount = bubbleCount * 2;
+    // Cada familia mantiene la misma cantidad: corazones, estrellas, regalos y círculos.
+    const extraBubbleCount = bubbleCount * 3;
     const bubbleKinds = {
       heart: { className: "heart-bubble", label: "corazón" },
       star: { className: "star-bubble", label: "estrella", src: "assets/star-bubble.svg" },
       gift: { className: "gift-bubble", label: "regalo", src: "assets/gift-bubble.svg" },
+      round: { className: "round-bubble", label: "burbuja de color", colors: ["#f5a9c8", "#f4d27e", "#a8d8cf", "#c8b4ed", "#f0b0a2"] },
     };
     const isPaused = () => media.matches;
     const later = (callback, delay, collection = timers) => {
@@ -143,12 +145,13 @@
     }
     function place(bubble, initial = false) {
       const sizes = width < 600 ? [44, 58, 76, 96] : [46, 72, 104, 140];
-      bubble.baseSize = sizes[(bubble.index + bubble.generation) % sizes.length] + Math.random() * 10;
+      bubble.baseSize = (sizes[(bubble.index + bubble.generation) % sizes.length] + Math.random() * 10) * 1.15;
       if (bubble.kind === bubbleKinds.star) bubble.baseSize *= 1.35;
       bubble.size = Math.min(bubble.baseSize, Math.max(44, width * .27));
       bubble.el.style.setProperty("--size", `${bubble.size}px`);
       bubble.el.style.setProperty("--bubble-opacity", bubble.size > 110 ? ".65" : ".9");
-      const horizontal = initial ? (bubble.index + .15 + Math.random() * .7) / bubbleCount : Math.random();
+      const placementIndex = bubble.index % bubbleCount;
+      const horizontal = initial ? (placementIndex + .15 + Math.random() * .7) / bubbleCount : Math.random();
       bubble.x = 4 + Math.max(0, width - bubble.size - 8) * horizontal;
       bubble.y = 12 + Math.random() * Math.max(0, height - bubble.size - 24);
       bubble.vx = (Math.random() > .5 ? 1 : -1) * (35 + Math.random() * 38);
@@ -218,15 +221,39 @@
       if (isPaused() || document.hidden) stopCelebration();
       else frame = requestAnimationFrame(tick);
     }
+    function enterScene() {
+      if (settleTimer) clearTimeout(settleTimer);
+      bubbleLayer.classList.add("scene-entrance");
+      for (const bubble of bubbles) {
+        place(bubble, true);
+        bubble.vx *= 1.45;
+        bubble.vy *= 1.45;
+      }
+      refresh();
+      settleTimer = later(() => {
+        for (const bubble of bubbles) {
+          bubble.vx *= .2;
+          bubble.vy *= .2;
+        }
+        bubbleLayer.classList.remove("scene-entrance");
+      }, 2600);
+    }
     function addBubble(kind, index, initial = true) {
       const el = document.createElement("button");
       el.className = `floating-bubble ${kind.className}`; el.type = "button";
       el.setAttribute("aria-label", `Explotar ${kind.label} ${index + 1}`);
-      const bubbleImage = document.createElement("img");
-      bubbleImage.src = kind.src || "assets/heart-bubble.svg";
-      bubbleImage.alt = ""; bubbleImage.draggable = false;
-      bubbleImage.setAttribute("aria-hidden", "true");
-      el.append(bubbleImage);
+      if (kind === bubbleKinds.round) {
+        const roundShape = document.createElement("span");
+        roundShape.className = "round-bubble-shape";
+        el.style.setProperty("--round-color", kind.colors[index % kind.colors.length]);
+        el.append(roundShape);
+      } else {
+        const bubbleImage = document.createElement("img");
+        bubbleImage.src = kind.src || "assets/heart-bubble.svg";
+        bubbleImage.alt = ""; bubbleImage.draggable = false;
+        bubbleImage.setAttribute("aria-hidden", "true");
+        el.append(bubbleImage);
+      }
       el.style.setProperty("--bob-delay", `${-Math.random() * 4}s`);
       const bubble = { el, kind, size: 0, baseSize: 0, index, generation: 0, x: 0, y: 0, vx: 0, vy: 0, age: 0, lifetime: 0, phase: "floating" };
       place(bubble, initial);
@@ -234,7 +261,10 @@
       bubbles.push(bubble); bubbleLayer.append(el);
     }
     for (let i = 0; i < bubbleCount; i++) addBubble(bubbleKinds.heart, i);
-    for (let i = 0; i < extraBubbleCount; i++) addBubble(i % 2 ? bubbleKinds.star : bubbleKinds.gift, bubbleCount + i);
+    for (let i = 0; i < extraBubbleCount; i++) {
+      const shape = i % 3 === 0 ? bubbleKinds.star : i % 3 === 1 ? bubbleKinds.gift : bubbleKinds.round;
+      addBubble(shape, bubbleCount + i);
+    }
     window.addEventListener("resize", refresh);
     window.addEventListener("scroll", refresh, { passive: true });
     media.addEventListener("change", syncMotion);
@@ -248,7 +278,7 @@
       refresh(); syncMotion();
     });
     refresh(); syncMotion();
-    return { confetti, burst, transition, finale, refresh, isPaused };
+    return { confetti, burst, transition, finale, refresh, enterScene, isPaused };
   }
   root.BirthdayEffects = Object.freeze({ create });
 })(window);

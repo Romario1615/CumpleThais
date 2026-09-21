@@ -17,7 +17,8 @@
     let height = window.innerHeight;
     let protectedAreas = [];
     const bubbleCount = width < 600 ? 8 : 12;
-    const extraBubbleCount = width < 600 ? 3 : 5;
+    // Cada familia mantiene la misma cantidad: corazones, estrellas y regalos.
+    const extraBubbleCount = bubbleCount * 2;
     const bubbleKinds = {
       heart: { className: "heart-bubble", label: "corazón" },
       star: { className: "star-bubble", label: "estrella", src: "assets/star-bubble.svg" },

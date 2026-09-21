@@ -29,7 +29,7 @@
       const expected = ["heart", "memory", "riddle", "word"][round.index];
       if (type !== expected) return { ok: false, reason: "wrong_challenge" };
       if (type === "heart") {
-        if (!Number.isInteger(value) || value < 0 || value > 11) return { ok: false, reason: "invalid" };
+        if (!Number.isInteger(value) || value < 0 || value > 14) return { ok: false, reason: "invalid" };
         if (!HEARTS.has(value)) return { ok: true, hit: false };
         round.hearts.add(value);
         round.solved = round.hearts.size === HEARTS.size;

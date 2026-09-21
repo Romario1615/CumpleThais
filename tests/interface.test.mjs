@@ -120,6 +120,9 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
       assert.equal(visible[0].dataset.stage, String(stage));
       page.click(`[data-open="${stage}"]`);
       if (stage === 0) {
+        assert.equal(page.document.querySelectorAll('.heart-tile[aria-label^="Corazón"]').length, 5);
+        assert.equal(page.document.querySelectorAll('.heart-tile[aria-label^="Estrella"]').length, 5);
+        assert.equal(page.document.querySelectorAll('.heart-tile[aria-label^="Regalo"]').length, 5);
         for (const heart of page.document.querySelectorAll('.heart-tile[aria-label^="Corazón"]')) heart.click();
       } else if (stage === 1) {
         const cards = [...page.document.querySelectorAll('.memory-tile')];
@@ -255,6 +258,8 @@ test('las burbujas flotantes incluyen corazones, estrellas y regalos', () => {
     assert.ok(hearts.length > 0, 'hay burbujas de corazón');
     assert.ok(stars.length > 0, 'hay burbujas de estrella');
     assert.ok(gifts.length > 0, 'hay burbujas de regalo');
+    assert.equal(hearts.length, stars.length, 'hay la misma cantidad de corazones y estrellas');
+    assert.equal(hearts.length, gifts.length, 'hay la misma cantidad de corazones y regalos');
     assert.ok([...stars].every(node => node.getAttribute('aria-label').startsWith('Explotar estrella')));
     assert.ok([...gifts].every(node => node.getAttribute('aria-label').startsWith('Explotar regalo')));
     assert.ok([...stars].every(node => node.querySelector('img[src="assets/star-bubble.svg"]')));

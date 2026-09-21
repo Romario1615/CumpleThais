@@ -385,8 +385,8 @@
   function buildHearts() {
     const grid = element("div", "game-grid");
     const counter = element("p", "game-counter", "0 de 5 corazones reunidos");
-    const giftSlots = new Set([2, 6, 9]);
-    for (let i = 0; i < 12; i++) {
+    const giftSlots = new Set([2, 6, 9, 12, 14]);
+    for (let i = 0; i < 15; i++) {
       const heart = engine.isHeart(i);
       const shape = heart ? "heart" : giftSlots.has(i) ? "gift" : "star";
       const symbol = heart ? "♡" : shape === "gift" ? "🎁" : i % 2 ? "✦" : "✧";

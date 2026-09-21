@@ -15,12 +15,12 @@ window.BIRTHDAY_CONFIG = {
     signature: "Con todo el cariño del mundo. ♡"
   },
   photos: [
-    { src: "", caption: "Esa sonrisa tuya", alt: "Una foto de la sonrisa de Thais" },
-    { src: "", caption: "Un día para recordar", alt: "Un día especial con Thais" },
-    { src: "", caption: "Un retrato para recordar ♡", alt: "Un retrato especial de Thais" },
-    { src: "", caption: "Un lindo recuerdo", alt: "Un recuerdo especial de Thais" },
-    { src: "", caption: "Risas que se quedan", alt: "Un momento de risas" },
-    { src: "", caption: "Una pequeña aventura", alt: "Un momento de aventura" },
+    { src: "assets/fotos/T1.png", caption: "Esa sonrisa tuya", alt: "Una foto de la sonrisa de Thais" },
+    { src: "assets/fotos/T2.png", caption: "Un día para recordar", alt: "Un día especial con Thais" },
+    { src: "assets/fotos/T3.png", caption: "Un retrato para recordar ♡", alt: "Un retrato especial de Thais" },
+    { src: "assets/fotos/T4.png", caption: "Un lindo recuerdo", alt: "Un recuerdo especial de Thais" },
+    { src: "assets/fotos/T5.png", caption: "Risas que se quedan", alt: "Un momento de risas" },
+    { src: "assets/fotos/T6.png", caption: "Una pequeña aventura", alt: "Un momento de aventura" },
     { src: "", caption: "Así de bonito", alt: "Un recuerdo bonito con Thais" },
     { src: "", caption: "Así de especial ♡", alt: "Un recuerdo favorito de Thais" }
   ]

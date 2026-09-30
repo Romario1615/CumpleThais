@@ -17,7 +17,7 @@
     let width = window.innerWidth;
     let height = window.innerHeight;
     let protectedAreas = [];
-    const bubbleCount = width < 600 ? 8 : 12;
+    const bubbleCount = width < 600 ? 5 : 8;
     // Cada familia mantiene la misma cantidad: corazones, estrellas, regalos y círculos.
     const extraBubbleCount = bubbleCount * 3;
     const bubbleKinds = {
@@ -130,32 +130,82 @@
         }, delay, celebrationTimers);
       });
     }
+    function keepInBounds(bubble) {
+      const maxX = Math.max(4, width - bubble.size - 4);
+      const maxY = Math.max(4, height - bubble.size - 4);
+      if (bubble.x < 4 || bubble.x > maxX) { bubble.x = Math.max(4, Math.min(maxX, bubble.x)); bubble.vx *= -1; }
+      if (bubble.y < 4 || bubble.y > maxY) { bubble.y = Math.max(4, Math.min(maxY, bubble.y)); bubble.vy *= -1; }
+    }
+    function resolveCollisions() {
+      for (let i = 0; i < bubbles.length; i++) {
+        const a = bubbles[i];
+        if (a.phase !== "floating") continue;
+        for (let j = i + 1; j < bubbles.length; j++) {
+          const b = bubbles[j];
+          if (b.phase !== "floating") continue;
+          const dx = b.x + b.size / 2 - a.x - a.size / 2;
+          const dy = b.y + b.size / 2 - a.y - a.size / 2;
+          const minimum = (a.size + b.size) / 2 + 5;
+          const distance = Math.hypot(dx, dy);
+          if (distance >= minimum) continue;
+          const nx = distance ? dx / distance : 1;
+          const ny = distance ? dy / distance : 0;
+          const aFocused = document.activeElement === a.el;
+          const bFocused = document.activeElement === b.el;
+          const overlap = minimum - distance;
+          if (!aFocused) { a.x -= nx * overlap * (bFocused ? 1 : .5); a.y -= ny * overlap * (bFocused ? 1 : .5); }
+          if (!bFocused) { b.x += nx * overlap * (aFocused ? 1 : .5); b.y += ny * overlap * (aFocused ? 1 : .5); }
+          const approach = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (approach < 0 && !(aFocused && bFocused)) {
+            const impulse = -approach * (aFocused || bFocused ? 1.72 : .86);
+            if (!aFocused) { a.vx -= impulse * nx; a.vy -= impulse * ny; }
+            if (!bFocused) { b.vx += impulse * nx; b.vy += impulse * ny; }
+          }
+          keepInBounds(a); keepInBounds(b);
+        }
+      }
+    }
     function refresh() {
       width = window.innerWidth; height = window.innerHeight;
       protectedAreas = [...document.querySelectorAll("header, footer, main button, main input, .home-return, .mascot-companion")]
         .filter(node => node.getClientRects().length)
         .map(node => node.getBoundingClientRect());
       for (const bubble of bubbles) {
-        bubble.size = Math.min(bubble.baseSize, Math.max(44, width * .27));
+        bubble.size = Math.min(bubble.baseSize, Math.max(30, width * .2));
         bubble.el.style.setProperty("--size", `${bubble.size}px`);
         bubble.x = Math.max(4, Math.min(bubble.x, width - bubble.size - 4));
         bubble.y = Math.max(4, Math.min(bubble.y, Math.max(4, height - bubble.size - 4)));
       }
+      for (let pass = 0; pass < 4; pass++) resolveCollisions();
       paint();
     }
     function place(bubble, initial = false) {
-      const sizes = width < 600 ? [44, 58, 76, 96] : [46, 72, 104, 140];
-      bubble.baseSize = (sizes[(bubble.index + bubble.generation) % sizes.length] + Math.random() * 10) * 1.15;
-      if (bubble.kind === bubbleKinds.star) bubble.baseSize *= 1.35;
-      bubble.size = Math.min(bubble.baseSize, Math.max(44, width * .27));
+      bubble.placementId++;
+      const sizes = width < 600 ? [27, 33, 40, 49] : [30, 38, 48, 61];
+      bubble.baseSize = sizes[(bubble.index + bubble.generation) % sizes.length] + Math.random() * 5;
+      if (bubble.kind === bubbleKinds.star) bubble.baseSize *= 1.08;
+      bubble.size = Math.min(bubble.baseSize, Math.max(30, width * .2));
       bubble.el.style.setProperty("--size", `${bubble.size}px`);
-      bubble.el.style.setProperty("--bubble-opacity", bubble.size > 110 ? ".65" : ".9");
-      const placementIndex = bubble.index % bubbleCount;
-      const horizontal = initial ? (placementIndex + .15 + Math.random() * .7) / bubbleCount : Math.random();
-      bubble.x = 4 + Math.max(0, width - bubble.size - 8) * horizontal;
-      bubble.y = 12 + Math.random() * Math.max(0, height - bubble.size - 24);
-      bubble.vx = (Math.random() > .5 ? 1 : -1) * (35 + Math.random() * 38);
-      bubble.vy = (Math.random() > .5 ? 1 : -1) * (26 + Math.random() * 38);
+      bubble.el.style.setProperty("--bubble-opacity", bubble.size > 55 ? ".62" : ".82");
+      let best = { x: 4, y: 4, clearance: -Infinity };
+      for (let attempt = 0; attempt < 60; attempt++) {
+        const seed = bubble.index + bubble.generation * 13 + attempt * 17 + 1;
+        const horizontal = (seed * .61803398875 + Math.random() * .04) % 1;
+        const vertical = (seed * .754877666 + Math.random() * .04) % 1;
+        const x = 4 + Math.max(0, width - bubble.size - 8) * horizontal;
+        const y = 4 + Math.max(0, height - bubble.size - 8) * vertical;
+        const clearance = bubbles.reduce((nearest, other) => {
+          if (other === bubble || other.phase !== "floating") return nearest;
+          const dx = x + bubble.size / 2 - other.x - other.size / 2;
+          const dy = y + bubble.size / 2 - other.y - other.size / 2;
+          return Math.min(nearest, Math.hypot(dx, dy) - (bubble.size + other.size) / 2);
+        }, Infinity);
+        if (clearance > best.clearance) best = { x, y, clearance };
+        if (clearance >= 8) break;
+      }
+      bubble.x = best.x; bubble.y = best.y;
+      bubble.vx = (Math.random() > .5 ? 1 : -1) * (17 + Math.random() * 14);
+      bubble.vy = (Math.random() > .5 ? 1 : -1) * (13 + Math.random() * 13);
       bubble.age = 0;
       bubble.lifetime = initial ? 6 + bubble.index * .7 + Math.random() * 5 : 7 + Math.random() * 11;
       bubble.phase = "floating";
@@ -167,6 +217,7 @@
     }
     function pop(bubble) {
       if (bubble.phase !== "floating") return;
+      const placementId = bubble.placementId;
       bubble.phase = "popping";
       bubble.el.dataset.phase = "popping";
       // Un clic deja el foco en el botón: liberarlo evita congelar su próxima vida.
@@ -178,10 +229,12 @@
       burst(centerX, centerY);
       popConfetti(centerX, centerY);
       later(() => {
+        if (bubble.placementId !== placementId) return;
         bubble.phase = "waiting"; bubble.el.dataset.phase = "waiting";
         bubble.el.hidden = true;
       }, isPaused() ? 0 : 360);
       later(() => {
+        if (bubble.placementId !== placementId) return;
         bubble.generation++;
         place(bubble);
         paint();
@@ -206,11 +259,9 @@
           bubble.age += delta;
           if (bubble.age >= bubble.lifetime) { pop(bubble); continue; }
           bubble.x += bubble.vx * delta; bubble.y += bubble.vy * delta;
-          const maxX = Math.max(4, width - bubble.size - 4);
-          const minY = 4, maxY = Math.max(minY, height - bubble.size - 4);
-          if (bubble.x < 4 || bubble.x > maxX) { bubble.x = Math.max(4, Math.min(maxX, bubble.x)); bubble.vx *= -1; }
-          if (bubble.y < minY || bubble.y > maxY) { bubble.y = Math.max(minY, Math.min(maxY, bubble.y)); bubble.vy *= -1; }
+          keepInBounds(bubble);
         }
+        resolveCollisions();
         paint();
       }
       frame = requestAnimationFrame(tick);
@@ -224,16 +275,17 @@
     function enterScene() {
       if (settleTimer) clearTimeout(settleTimer);
       bubbleLayer.classList.add("scene-entrance");
+      bubbles.forEach(bubble => { bubble.phase = "placing"; });
       for (const bubble of bubbles) {
         place(bubble, true);
-        bubble.vx *= 1.45;
-        bubble.vy *= 1.45;
+        bubble.vx *= 1.25;
+        bubble.vy *= 1.25;
       }
       refresh();
       settleTimer = later(() => {
         for (const bubble of bubbles) {
-          bubble.vx *= .2;
-          bubble.vy *= .2;
+          bubble.vx *= .8;
+          bubble.vy *= .8;
         }
         bubbleLayer.classList.remove("scene-entrance");
       }, 2600);
@@ -255,7 +307,7 @@
         el.append(bubbleImage);
       }
       el.style.setProperty("--bob-delay", `${-Math.random() * 4}s`);
-      const bubble = { el, kind, size: 0, baseSize: 0, index, generation: 0, x: 0, y: 0, vx: 0, vy: 0, age: 0, lifetime: 0, phase: "floating" };
+      const bubble = { el, kind, size: 0, baseSize: 0, index, generation: 0, placementId: 0, x: 0, y: 0, vx: 0, vy: 0, age: 0, lifetime: 0, phase: "floating" };
       place(bubble, initial);
       el.addEventListener("click", () => pop(bubble));
       bubbles.push(bubble); bubbleLayer.append(el);

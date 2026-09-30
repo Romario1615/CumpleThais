@@ -388,3 +388,28 @@ body.tunnel-active .bubble-layer { visibility: hidden; }
 @media (max-width: 540px) { .birthday-wish { padding: 25px 20px; } .tunnel-content { gap: 8px; padding-block: 20px; } .tunnel-content h2 { font-size: clamp(1.9rem, 7vw, 2.8rem); } .tunnel-phrases { min-height: 280px; } .tunnel-photo { width: 96px; } .tunnel-phrase { font-size: 1.55rem; padding: 24px 18px; } .tunnel-phrase.is-final { font-size: 1.32rem; } }
 @media (max-height: 650px) { .birthday-tunnel { overflow-y: auto; } .tunnel-content { gap: 8px; padding-block: 16px; } .tunnel-content h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); } .tunnel-phrases { min-height: 0; } .tunnel-phrase { padding: 17px; font-size: clamp(1.25rem, 2.5vw, 1.8rem); } .tunnel-phrase.is-final { font-size: clamp(1.1rem, 2.2vw, 1.5rem); line-height: 1.35; } }
 @media (prefers-reduced-motion: reduce) { .tunnel-rays, .tunnel-ring { display: none; } .tunnel-photo { transform: translate(-50%, -50%) translate(var(--flight-x), var(--flight-y)) scale(.7); opacity: .5; } .tunnel-photo:nth-child(n+7), .tunnel-phrase:not(.is-final) { display: none; } .tunnel-phrase.is-final { opacity: 1; transform: none; } .tunnel-progress span { transform: scaleX(1); } }
+
+/* Música opcional y entrada del regalo. */
+.sound-toggle { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 46px; min-height: 44px; padding: 8px 13px; border: 1px solid #dfb4c7; border-radius: 999px; background: #fff9fc; color: var(--pink); font-size: .875rem; box-shadow: 0 4px 14px #9c446916; }
+.bubble-layer { opacity: .55; }
+.sound-toggle span[aria-hidden] { font-size: 1.3rem; line-height: 1; }
+.sound-toggle[aria-pressed="false"] { color: var(--muted); background: #f6edf1; }
+.sound-toggle:hover { background: var(--pink-light); }
+@media (max-width: 800px) { .sound-label { display: none; } .sound-toggle { padding-inline: 9px; } }
+@media (max-width: 540px) { .header-progress progress { display: none; } .header-progress { margin-left: auto; } }
+.birthday-preloader { position: fixed; inset: 0; z-index: 300; overflow: hidden; background: radial-gradient(circle at 50% 46%, #fff4d9 0, #fce7ef 44%, #f5d7e8 100%); }
+.preloader-stage { position: absolute; inset: 0; }
+.preloader-gift { position: absolute; top: 50%; left: 50%; z-index: 2; width: clamp(105px, 18vw, 160px); aspect-ratio: 1; filter: drop-shadow(0 18px 22px #ab4c8155); animation: preloader-drop 1.5s cubic-bezier(.22,.8,.35,1) both; }
+.preloader-gift img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.preloader-splash { position: absolute; top: 50%; left: 50%; width: 100px; aspect-ratio: 1; border: 3px solid #e377a2; border-radius: 50%; box-shadow: 0 0 0 12px #ffd5e755, 0 0 35px #e777aa8c; animation: preloader-splash .9s ease-out .86s both; }
+.preloader-splash.second { border-color: #e4b44d; animation-delay: 1.04s; }
+.preloader-confetti i { position: absolute; top: 50%; left: 50%; display: block; width: 8px; height: 15px; border-radius: 3px; background: var(--splash-color); box-shadow: 0 0 9px #fff9; animation: preloader-confetti 1.1s cubic-bezier(.2,.75,.3,1) .88s both; }
+.preloader-confetti i:nth-child(3n) { width: 9px; height: 9px; border-radius: 50%; }
+.birthday-preloader p { position: absolute; top: calc(50% + 118px); left: 0; right: 0; padding-inline: 18px; color: #9d426e; font-family: var(--serif); font-size: clamp(1rem, 2.5vw, 1.3rem); font-style: italic; text-align: center; animation: preloader-caption .65s ease 1.25s both; }
+.birthday-preloader.is-leaving { animation: preloader-leave .45s ease forwards; pointer-events: none; }
+@keyframes preloader-drop { 0% { transform: translate(-50%, -50%) translateY(-110vh) rotate(-18deg) scale(.65); } 55% { transform: translate(-50%, -50%) translateY(0) rotate(5deg) scale(1.17,.76); } 70% { transform: translate(-50%, -50%) translateY(-62px) rotate(-5deg) scale(.92,1.08); } 83% { transform: translate(-50%, -50%) translateY(0) rotate(2deg) scale(1.05,.9); } 91% { transform: translate(-50%, -50%) translateY(-16px) rotate(-1deg); } 100% { transform: translate(-50%, -50%) translateY(0) rotate(0); } }
+@keyframes preloader-splash { 0% { transform: translate(-50%, -50%) scale(.15); opacity: 0; } 18% { opacity: .9; } 100% { transform: translate(-50%, -50%) scale(3.8); opacity: 0; } }
+@keyframes preloader-confetti { 0% { transform: translate(-50%, -50%) scale(.2); opacity: 0; } 14% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--splash-x)), calc(-50% + var(--splash-y))) rotate(var(--splash-turn)); opacity: 0; } }
+@keyframes preloader-caption { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes preloader-leave { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .preloader-gift { transform: translate(-50%, -50%); } .preloader-splash, .preloader-confetti { display: none; } .birthday-preloader p { opacity: 1; } }

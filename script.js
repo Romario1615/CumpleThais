@@ -17,6 +17,7 @@
   const screens = $$("main > section[data-screen]");
   const effects = window.BirthdayEffects.create();
   const mascot = window.BirthdayMascot.create();
+  const audio = window.BirthdayAudio.create(config.storageKey);
   let storageAvailable = true;
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(config.storageKey) || "{}"); } catch { storageAvailable = false; }
@@ -117,6 +118,7 @@
     $("#home-button").hidden = name === "welcome";
     $(".header-progress").hidden = name === "welcome" && !experience.snapshot().started;
     document.body.dataset.scene = name;
+    audio.setScene(name);
     document.body.classList.toggle("is-finale", name === "surprise" && journey.snapshot().revealed);
     renderProgress();
     if (name === "reward") renderReward();
@@ -321,6 +323,7 @@
   }
   function showWin(index) {
     won = true;
+    audio.celebrate();
     clearRoundTimers();
     $("#challenge-description").textContent = "Un pasito más en este camino hecho para ti.";
     content.replaceChildren();
@@ -492,6 +495,7 @@
     $("#birthday-tunnel").hidden = true;
     $("#tunnel-description").textContent = "";
     document.body.classList.remove("tunnel-active");
+    audio.setScene(visibleScreen);
   }
   function scheduleTunnel(callback, delay) {
     const timer = setTimeout(() => { tunnelTimers.delete(timer); callback(); }, delay);
@@ -539,6 +543,7 @@
     }));
     $("#birthday-tunnel").hidden = false;
     document.body.classList.add("tunnel-active");
+    audio.setScene("tunnel"); audio.celebrate();
     $("#tunnel-description").textContent = phrases[0];
     phrases.slice(1).forEach((phrase, index) => scheduleTunnel(() => { $("#tunnel-description").textContent = phrase; }, (index + 1) * 4000));
     scheduleTunnel(() => showScreen("welcome"), tunnelDuration);
@@ -564,10 +569,44 @@
     if (event.key === "Tab") { event.preventDefault(); $("#tunnel-skip").focus(); }
   });
   $("#celebrate-button").addEventListener("click", startTunnel);
+  const soundButton = $("#sound-toggle");
+  function renderSoundButton() {
+    soundButton.hidden = !audio.available;
+    soundButton.setAttribute("aria-pressed", String(audio.enabled()));
+    soundButton.setAttribute("aria-label", audio.enabled() ? "Silenciar música y sonidos" : "Activar música y sonidos");
+    $(".sound-label", soundButton).textContent = audio.enabled() ? "Sonido" : "Silencio";
+    $("span[aria-hidden]", soundButton).textContent = audio.enabled() ? "♫" : "♪";
+  }
+  soundButton.addEventListener("click", () => { audio.toggle(); renderSoundButton(); });
+  document.addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (button && button !== soundButton && !button.disabled) audio.playButton(button);
+  }, true);
+  renderSoundButton();
+  function startPreloader() {
+    const preloader = $("#birthday-preloader");
+    const pieces = Array.from({ length: 18 }, (_, index) => {
+      const piece = element("i");
+      const angle = (Math.PI * 2 * index) / 18;
+      const distance = 80 + (index % 4) * 24;
+      piece.style.setProperty("--splash-x", `${Math.cos(angle) * distance}px`);
+      piece.style.setProperty("--splash-y", `${Math.sin(angle) * distance + 25}px`);
+      piece.style.setProperty("--splash-turn", `${index * 47}deg`);
+      piece.style.setProperty("--splash-color", ["#e85b91", "#ffd166", "#a785df", "#78cdb8"][index % 4]);
+      return piece;
+    });
+    $("#preloader-confetti").replaceChildren(...pieces);
+    if (effects.isPaused()) { setTimeout(() => { preloader.hidden = true; }, 120); return; }
+    setTimeout(() => {
+      preloader.classList.add("is-leaving");
+      setTimeout(() => { preloader.hidden = true; }, 450);
+    }, 2350);
+  }
   function confetti(count) {
     effects.confetti(count);
   }
   showScreen(experience.screen(), false);
+  startPreloader();
   // Mejora progresiva: los navegadores sin WebMCP mantienen todas las funciones.
   if (document.modelContext?.registerTool) {
     const lifecycle = new AbortController();

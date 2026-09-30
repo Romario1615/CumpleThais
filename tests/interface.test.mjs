@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
-const sources = await Promise.all(['config.js', 'core.js', 'effects.js', 'mascot.js', 'script.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
+const sources = await Promise.all(['config.js', 'core.js', 'effects.js', 'mascot.js', 'audio.js', 'script.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
 const wait = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Ejecuta el HTML y los scripts reales. Solo adapta APIs de ventana que JSDOM
@@ -20,6 +20,16 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
   window.HTMLElement.prototype.scrollIntoView = () => {};
   window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
   window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  if (options.audioEvents) {
+    const events = options.audioEvents;
+    window.AudioContext = class {
+      constructor() { events.constructed++; this.currentTime = 0; this.state = 'suspended'; this.destination = {}; }
+      createGain() { return { gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {}, setTargetAtTime() {} }, connect() {}, disconnect() {} }; }
+      createOscillator() { return { frequency: { setValueAtTime() {} }, connect() {}, disconnect() {}, start() { events.notes++; }, stop() {} }; }
+      resume() { this.state = 'running'; return Promise.resolve(); }
+      suspend() { this.state = 'suspended'; return Promise.resolve(); }
+    };
+  }
   if (options.styles) {
     const stylesheet = window.document.createElement('style');
     stylesheet.textContent = styles;
@@ -298,6 +308,32 @@ test('el repaso oculta las respuestas pendientes y permite retomar el recuerdo p
   } finally { page.dom.window.close(); }
 });
 
+test('la música empieza con un botón y el control de sonido la silencia', async () => {
+  const events = { constructed: 0, notes: 0 };
+  const page = loadPage(undefined, true, undefined, { audioEvents: events });
+  try {
+    const toggle = page.document.querySelector('#sound-toggle');
+    assert.equal(toggle.hidden, false);
+    assert.equal(events.constructed, 0, 'no hay audio automático');
+    page.click('#start-button');
+    await wait();
+    assert.equal(events.constructed, 1);
+    assert.ok(events.notes > 0, 'la música y el botón programan notas');
+    page.click('#sound-toggle');
+    assert.equal(toggle.getAttribute('aria-pressed'), 'false');
+    assert.equal(page.window.localStorage.getItem('cumple-thais-2026-v1:sound'), 'off');
+    const mutedNotes = events.notes;
+    page.click('#home-button');
+    await wait();
+    assert.equal(events.notes, mutedNotes);
+    page.click('#sound-toggle');
+    await wait();
+    assert.equal(toggle.getAttribute('aria-pressed'), 'true');
+    assert.ok(events.notes > mutedNotes);
+    assert.deepEqual(page.errors, []);
+  } finally { page.dom.window.close(); }
+});
+
 test('las animaciones se activan sin botón incluso con una pausa guardada anteriormente', async () => {
   const page = loadPage(undefined, false, 'paused');
   try {
@@ -343,8 +379,46 @@ test('las burbujas flotantes incluyen corazones, estrellas y regalos', () => {
     assert.ok([...stars].every(node => node.querySelector('img[src="assets/star-bubble.svg"]')));
     assert.ok([...gifts].every(node => node.querySelector('img[src="assets/gift-bubble.svg"]')));
     assert.ok([...rounds].every(node => node.querySelector('.round-bubble-shape')));
-    assert.ok([...stars].every(node => parseFloat(node.style.getPropertyValue('--size')) >= 59), 'las estrellas son burbujas grandes');
+    assert.ok([...stars].every(node => parseFloat(node.style.getPropertyValue('--size')) <= 75), 'las estrellas conservan un tamaño discreto');
     assert.equal([...stars, ...gifts].some(node => node.classList.contains('heart-bubble')), false);
+  } finally { page.dom.window.close(); }
+});
+
+test('el regalo cae al centro y el preloader libera la página tras el splash', () => {
+  const page = loadPage(undefined, false, undefined, { manualClock: true, styles: true });
+  try {
+    const preloader = page.document.querySelector('#birthday-preloader');
+    assert.equal(preloader.hidden, false);
+    assert.ok(preloader.querySelector('.preloader-gift img[src="assets/gift-bubble.svg"]'));
+    assert.equal(preloader.querySelectorAll('#preloader-confetti i').length, 18);
+    page.advance(2350);
+    assert.equal(preloader.classList.contains('is-leaving'), true);
+    page.advance(450);
+    assert.equal(preloader.hidden, true);
+    page.screen('welcome');
+  } finally { page.dom.window.close(); }
+});
+
+test('las burbujas pequeñas se mantienen separadas mientras flotan y rebotan', () => {
+  const page = loadPage(undefined, false, undefined, { manualClock: true, width: 390, height: 844 });
+  try {
+    const checkSeparation = () => {
+      const bubbles = [...page.document.querySelectorAll('#bubble-layer .floating-bubble[data-phase="floating"]')].map(node => {
+        const [, x, y] = node.style.transform.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/);
+        return { x: Number(x), y: Number(y), size: parseFloat(node.style.getPropertyValue('--size')) };
+      });
+      for (let i = 0; i < bubbles.length; i++) {
+        assert.ok(bubbles[i].size <= 60, 'tamaño adecuado para móvil');
+        for (let j = i + 1; j < bubbles.length; j++) {
+          const a = bubbles[i], b = bubbles[j];
+          const distance = Math.hypot(a.x + a.size / 2 - b.x - b.size / 2, a.y + a.size / 2 - b.y - b.size / 2);
+          assert.ok(distance >= (a.size + b.size) / 2 - 1, `burbujas ${i} y ${j} no se solapan`);
+        }
+      }
+    };
+    checkSeparation();
+    for (const step of [3000, 4000, 5000, 8000]) { page.advance(step); checkSeparation(); }
+    assert.deepEqual(page.errors, []);
   } finally { page.dom.window.close(); }
 });
 
@@ -353,9 +427,10 @@ test('las burbujas desaparecen, reaparecen y vuelven a moverse después de cada 
   try {
     const bubbles = [...page.document.querySelectorAll('.heart-bubble')];
     const sizes = bubbles.map(bubble => parseFloat(bubble.style.getPropertyValue('--size')));
-    const positions = bubbles.map(bubble => parseFloat(bubble.style.transform.slice(12)));
+    const positions = [...page.document.querySelectorAll('#bubble-layer .floating-bubble')].map(bubble => parseFloat(bubble.style.transform.slice(12)));
     assert.ok(new Set(sizes).size >= 4, 'hay al menos cuatro tamaños');
-    assert.ok(Math.max(...sizes) / Math.min(...sizes) > 2.5);
+    assert.ok(Math.max(...sizes) / Math.min(...sizes) > 1.7);
+    assert.ok(Math.max(...sizes) <= 70, 'ningún corazón domina el fondo');
     assert.ok(Math.min(...positions) < 144 && Math.max(...positions) > 1152, 'ocupan ambos extremos del ancho');
     for (const bubble of bubbles) {
       if (bubble.dataset.phase !== 'floating') page.advance(2000);
@@ -385,7 +460,7 @@ test('las explosiones automáticas son escalonadas y continúan también en una 
   const page = loadPage(undefined, false, undefined, { manualClock: true, width: 390, height: 844 });
   try {
     const bubbles = [...page.document.querySelectorAll('.heart-bubble')];
-    assert.equal(bubbles.length, 8);
+    assert.equal(bubbles.length, 5);
     page.advance(8800);
     assert.equal(bubbles[0].dataset.phase, 'popping');
     assert.equal(bubbles[1].dataset.phase, 'floating', 'no explotan todas juntas');

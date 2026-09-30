@@ -12,13 +12,19 @@
   <script src="core.js" defer></script>
   <script src="effects.js" defer></script>
   <script src="mascot.js" defer></script>
+  <script src="audio.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
+  <div class="birthday-preloader" id="birthday-preloader" role="status" aria-label="Preparando tu sorpresa">
+    <div class="preloader-stage" aria-hidden="true"><span class="preloader-gift"><img src="assets/gift-bubble.svg" alt=""></span><span class="preloader-splash"></span><span class="preloader-splash second"></span><span class="preloader-confetti" id="preloader-confetti"></span></div>
+    <p>Una sorpresa está llegando…</p>
+  </div>
   <a class="skip-link" href="#inicio">Saltar al contenido</a>
   <header class="site-header">
     <a class="brand" href="#inicio" aria-label="Volver al inicio"><span class="brand-symbol" aria-hidden="true">✳</span> el día de <span data-name>Thais</span><span class="brand-dot">.</span></a>
     <div class="header-progress" hidden><span id="progress-label">0 de 4 retos</span><progress id="journey-progress" value="0" max="4" aria-labelledby="progress-label"></progress><span class="small-heart" aria-hidden="true">♡</span></div>
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Silenciar música y sonidos"><span aria-hidden="true">♫</span><span class="sound-label">Sonido</span></button>
   </header>
 
   <div class="mascot-dock" id="mascot-dock">

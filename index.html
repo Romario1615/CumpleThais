@@ -16,8 +16,9 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="birthday-preloader" id="birthday-preloader" role="status" aria-label="Preparando tu sorpresa">
+  <div class="birthday-preloader" id="birthday-preloader" role="dialog" aria-modal="true" aria-label="Preparando tu sorpresa">
     <div class="preloader-stage" aria-hidden="true"><span class="preloader-gift"><img src="assets/gift-bubble.svg" alt=""></span><span class="preloader-splash"></span><span class="preloader-splash second"></span><span class="preloader-confetti" id="preloader-confetti"></span></div>
+    <button class="preloader-start" id="preloader-start" type="button" hidden>♫ &nbsp; Toca para abrir tu sorpresa</button>
     <p>Una sorpresa está llegando…</p>
   </div>
   <a class="skip-link" href="#inicio">Saltar al contenido</a>

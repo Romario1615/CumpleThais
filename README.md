@@ -46,7 +46,7 @@ El bloqueo forma parte del juego; el código está en archivos estáticos y pued
 ## Detalles
 
 - Botones utilizables con teclado y pantalla táctil, diálogo nativo, estados anunciados y foco visible.
-- Animaciones reducidas cuando el dispositivo lo solicita. El audio `assets/videoplayback.weba` se reproduce en bucle después del primer toque, junto con los sonidos suaves de los botones; el control «Sonido» los activa o silencia y recuerda la preferencia.
+- Animaciones reducidas cuando el dispositivo lo solicita. El audio `assets/videoplayback.weba` comienza en el preloader y se reproduce en bucle junto con los sonidos suaves de los botones. Si el navegador bloquea la reproducción automática, el preloader ofrece un botón para iniciarla antes de que caiga el regalo. El control «Sonido» activa o silencia todo el audio y recuerda la preferencia.
 - Un regalo en burbuja cae al centro al abrir la página, crea un splash y suelta confeti antes de mostrar la bienvenida.
 - Burbujas translúcidas pequeñas, repartidas por todo el ancho, que rebotan suavemente entre sí sin solaparse. Explotan al tocarlas o al terminar su tiempo individual, sueltan confeti, desaparecen y reaparecen en otra posición. El cursor no las congela; el foco del teclado permite seleccionarlas y se libera al explotar. No interceptan los botones del recorrido.
 - Una pequeña compañera camina entre etapas, señala pistas, piensa durante los intentos y celebra los aciertos. Tiene espacio propio tanto en la página como dentro de los retos para no tapar controles. Su ilustración de seis poses está en `assets/mascot-girl.png`, generada con la herramienta integrada de ImageGen. El prompt exacto se conserva en `outputs/mascot-prompt.txt`.

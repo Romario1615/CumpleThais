@@ -406,6 +406,11 @@ body.tunnel-active .bubble-layer { visibility: hidden; }
 .preloader-confetti i { position: absolute; top: 50%; left: 50%; display: block; width: 8px; height: 15px; border-radius: 3px; background: var(--splash-color); box-shadow: 0 0 9px #fff9; animation: preloader-confetti 1.1s cubic-bezier(.2,.75,.3,1) .88s both; }
 .preloader-confetti i:nth-child(3n) { width: 9px; height: 9px; border-radius: 50%; }
 .birthday-preloader p { position: absolute; top: calc(50% + 118px); left: 0; right: 0; padding-inline: 18px; color: #9d426e; font-family: var(--serif); font-size: clamp(1rem, 2.5vw, 1.3rem); font-style: italic; text-align: center; animation: preloader-caption .65s ease 1.25s both; }
+.preloader-gift, .preloader-splash, .preloader-confetti i, .birthday-preloader p { animation-play-state: paused; }
+.birthday-preloader.is-playing .preloader-gift, .birthday-preloader.is-playing .preloader-splash, .birthday-preloader.is-playing .preloader-confetti i, .birthday-preloader.is-playing p { animation-play-state: running; }
+.birthday-preloader:not(.is-playing) p { top: calc(50% + 82px); animation: none; }
+.preloader-start { position: absolute; top: 50%; left: 50%; z-index: 4; transform: translate(-50%, -50%); min-height: 54px; width: max-content; max-width: calc(100vw - 40px); padding: 12px 24px; border: 1px solid #d78cad; border-radius: 999px; background: #fffafc; color: #a33e70; font-weight: 650; text-align: center; box-shadow: 0 12px 32px #9d426e30; }
+.preloader-start:hover { background: #ffeaf3; }
 .birthday-preloader.is-leaving { animation: preloader-leave .45s ease forwards; pointer-events: none; }
 @keyframes preloader-drop { 0% { transform: translate(-50%, -50%) translateY(-110vh) rotate(-18deg) scale(.65); } 55% { transform: translate(-50%, -50%) translateY(0) rotate(5deg) scale(1.17,.76); } 70% { transform: translate(-50%, -50%) translateY(-62px) rotate(-5deg) scale(.92,1.08); } 83% { transform: translate(-50%, -50%) translateY(0) rotate(2deg) scale(1.05,.9); } 91% { transform: translate(-50%, -50%) translateY(-16px) rotate(-1deg); } 100% { transform: translate(-50%, -50%) translateY(0) rotate(0); } }
 @keyframes preloader-splash { 0% { transform: translate(-50%, -50%) scale(.15); opacity: 0; } 18% { opacity: .9; } 100% { transform: translate(-50%, -50%) scale(3.8); opacity: 0; } }

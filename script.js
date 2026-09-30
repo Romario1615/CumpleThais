@@ -580,11 +580,13 @@
   soundButton.addEventListener("click", () => { audio.toggle(); renderSoundButton(); });
   document.addEventListener("click", event => {
     const button = event.target.closest("button");
+    if (button?.id === "preloader-start") audio.start(true);
     if (button && button !== soundButton && !button.disabled) audio.playButton(button);
   }, true);
   renderSoundButton();
   function startPreloader() {
     const preloader = $("#birthday-preloader");
+    const startButton = $("#preloader-start");
     const pieces = Array.from({ length: 18 }, (_, index) => {
       const piece = element("i");
       const angle = (Math.PI * 2 * index) / 18;
@@ -596,11 +598,29 @@
       return piece;
     });
     $("#preloader-confetti").replaceChildren(...pieces);
-    if (effects.isPaused()) { setTimeout(() => { preloader.hidden = true; }, 120); return; }
-    setTimeout(() => {
-      preloader.classList.add("is-leaving");
-      setTimeout(() => { preloader.hidden = true; }, 450);
-    }, 2350);
+    let begun = false;
+    const begin = () => {
+      if (begun) return;
+      begun = true;
+      startButton.hidden = true;
+      preloader.classList.add("is-playing");
+      if (effects.isPaused()) { setTimeout(() => { preloader.hidden = true; }, 120); return; }
+      setTimeout(() => {
+        preloader.classList.add("is-leaving");
+        setTimeout(() => {
+          preloader.hidden = true;
+          if (document.activeElement === startButton) $("#inicio").focus({ preventScroll: true });
+        }, 450);
+      }, 2350);
+    };
+    startButton.addEventListener("click", begin);
+    if (!audio.available || !audio.enabled()) { begin(); return; }
+    audio.start().then(playing => {
+      if (begun) return;
+      if (playing) begin();
+      else { startButton.hidden = false; startButton.focus({ preventScroll: true }); }
+    });
+    setTimeout(() => { if (!begun) startButton.hidden = false; }, 1200);
   }
   function confetti(count) {
     effects.confetti(count);

@@ -6,7 +6,7 @@
     const preferenceKey = `${storageKey}:sound`;
     const music = root.document.createElement("audio");
     music.src = "assets/videoplayback.weba";
-    music.preload = "none";
+    music.preload = "auto";
     music.loop = true;
     music.volume = .42;
 
@@ -15,19 +15,29 @@
     let context, effectBus, effectOpening, musicOpening;
     let started = false;
     let playing = false;
+    let playbackVersion = 0;
 
-    function start() {
-      if (!enabled || root.document.hidden) return;
+    function start(retry = false) {
+      if (!enabled || root.document.hidden) return Promise.resolve(false);
       started = true;
-      if (playing || musicOpening) return;
+      if (playing) return Promise.resolve(true);
+      if (retry) musicOpening = null;
+      if (musicOpening) return musicOpening;
+      const version = ++playbackVersion;
       try {
-        musicOpening = Promise.resolve(music.play()).then(() => {
-          if (!enabled || root.document.hidden) music.pause();
-          else playing = true;
-        }).catch(() => { playing = false; }).finally(() => { musicOpening = null; });
-      } catch { musicOpening = null; }
+        const request = Promise.resolve(music.play()).then(() => {
+          if (version !== playbackVersion) return false;
+          if (!enabled || root.document.hidden) { music.pause(); return false; }
+          playing = true;
+          return true;
+        }).catch(() => false).finally(() => { if (musicOpening === request) musicOpening = null; });
+        musicOpening = request;
+        return request;
+      } catch { return Promise.resolve(false); }
     }
     function stop() {
+      playbackVersion++;
+      musicOpening = null;
       playing = false;
       music.pause();
       if (context) context.suspend().catch(() => {});
@@ -90,7 +100,7 @@
       else if (started && enabled) start();
     });
     root.addEventListener("pagehide", stop);
-    return { available: Boolean(root.HTMLAudioElement || AudioContext), enabled: () => enabled, playButton, celebrate: start, setScene, toggle };
+    return { available: Boolean(root.HTMLAudioElement || AudioContext), enabled: () => enabled, start, playButton, celebrate: start, setScene, toggle };
   }
 
   root.BirthdayAudio = Object.freeze({ create });

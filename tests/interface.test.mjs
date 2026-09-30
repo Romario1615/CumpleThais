@@ -27,6 +27,7 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
     window.HTMLMediaElement.prototype.play = function () {
       events.musicPlays++;
       events.media = this;
+      if (options.blockAutoplay && events.musicPlays === 1) return Promise.reject(new Error('Autoplay blocked'));
       return Promise.resolve();
     };
     window.HTMLMediaElement.prototype.pause = function () { events.musicPauses++; };
@@ -316,18 +317,20 @@ test('el repaso oculta las respuestas pendientes y permite retomar el recuerdo p
   } finally { page.dom.window.close(); }
 });
 
-test('el audio de assets reemplaza la melodía y conserva los sonidos de botones', async () => {
+test('el audio de assets comienza en el preloader y conserva los sonidos de botones', async () => {
   const events = { constructed: 0, notes: 0, musicPlays: 0, musicPauses: 0 };
   const page = loadPage(undefined, true, undefined, { audioEvents: events });
   try {
     const toggle = page.document.querySelector('#sound-toggle');
     assert.equal(toggle.hidden, false);
-    assert.equal(events.constructed, 0, 'no hay audio automático');
-    assert.equal(events.musicPlays, 0, 'la canción espera a la primera interacción');
+    assert.equal(events.constructed, 0, 'los efectos de botones esperan a la primera interacción');
+    assert.equal(events.musicPlays, 1, 'la canción se solicita durante el preloader');
+    await wait();
+    assert.equal(page.document.querySelector('#birthday-preloader').classList.contains('is-playing'), true);
     page.click('#start-button');
     await wait();
     assert.equal(events.constructed, 1);
-    assert.equal(events.musicPlays, 1);
+    assert.equal(events.musicPlays, 1, 'la canción continúa sin reiniciarse');
     assert.match(events.media.src, /assets\/videoplayback\.weba$/);
     assert.equal(events.media.loop, true);
     assert.ok(events.notes > 0, 'el botón conserva su sonido');
@@ -403,18 +406,40 @@ test('las burbujas flotantes incluyen corazones, estrellas y regalos', () => {
   } finally { page.dom.window.close(); }
 });
 
-test('el regalo cae al centro y el preloader libera la página tras el splash', () => {
+test('el regalo cae al centro y el preloader libera la página tras el splash', async () => {
   const page = loadPage(undefined, false, undefined, { manualClock: true, styles: true });
   try {
     const preloader = page.document.querySelector('#birthday-preloader');
     assert.equal(preloader.hidden, false);
     assert.ok(preloader.querySelector('.preloader-gift img[src="assets/gift-bubble.svg"]'));
     assert.equal(preloader.querySelectorAll('#preloader-confetti i').length, 18);
+    await wait();
+    assert.equal(preloader.classList.contains('is-playing'), true);
     page.advance(2350);
     assert.equal(preloader.classList.contains('is-leaving'), true);
     page.advance(450);
     assert.equal(preloader.hidden, true);
     page.screen('welcome');
+  } finally { page.dom.window.close(); }
+});
+
+test('si el navegador bloquea el inicio automático, el preloader permite tocar para escuchar', async () => {
+  const events = { constructed: 0, notes: 0, musicPlays: 0, musicPauses: 0 };
+  const page = loadPage(undefined, false, undefined, { manualClock: true, audioEvents: events, blockAutoplay: true });
+  try {
+    // Simula la política de autoplay antes de la primera interacción.
+    const preloader = page.document.querySelector('#birthday-preloader');
+    const button = page.document.querySelector('#preloader-start');
+    assert.equal(events.musicPlays, 1);
+    await wait();
+    assert.equal(button.hidden, false);
+    assert.equal(preloader.classList.contains('is-playing'), false);
+    page.click('#preloader-start');
+    await wait();
+    assert.equal(events.musicPlays, 2, 'el toque inicia el audio bloqueado');
+    assert.equal(preloader.classList.contains('is-playing'), true);
+    page.advance(2850);
+    assert.equal(preloader.hidden, true);
   } finally { page.dom.window.close(); }
 });
 

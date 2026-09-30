@@ -41,6 +41,8 @@
   let riddleAttempts = 0;
   let openingGift = false;
   let giftTimer;
+  const tunnelTimers = new Set();
+  const tunnelDuration = 30000;
 
   function later(callback, delay) {
     const id = roundId;
@@ -101,6 +103,7 @@
     window.scrollTo({ top: 0, behavior: "instant" });
   }
   function showScreen(name = experience.screen(), moveFocus = true) {
+    if (!$("#birthday-tunnel").hidden) stopTunnel();
     const next = experience.screen();
     // Las visitas al inicio y al repaso conservan el punto real del recorrido.
     const canReview = name === "review" && journey.snapshot().completed > 0;
@@ -233,7 +236,7 @@
   resetDialog.addEventListener("cancel", event => { event.preventDefault(); closeReset(); });
   $("#confirm-reset").addEventListener("click", () => {
     if (!resetDialog.open) return;
-    clearRoundTimers(); clearTimeout(giftTimer); clearTimeout(toastTimer);
+    clearRoundTimers(); clearTimeout(giftTimer); clearTimeout(toastTimer); stopTunnel();
     journey.cancel();
     journey = engine.createJourney(); experience = engine.createExperience(journey);
     activeStage = -1; reviewIndex = 0; won = false; riddleAttempts = 0; lastOpener = null;
@@ -241,10 +244,7 @@
     content.replaceChildren(); feedback(""); $("#toast").hidden = true;
     $("#gift-reveal").hidden = true; $("#surprise-box").hidden = false;
     $("#sorpresa").setAttribute("aria-labelledby", "surprise-title");
-    ["gift-message", "gift-clue", "gift-signature", "extra-clue", "reward-note", "reward-photo", "review-answer", "review-prompt"].forEach(id => document.getElementById(id).replaceChildren());
-    $("#extra-clue").hidden = true;
-    $("#extra-clue-button").textContent = "Necesito una pista más ↗";
-    $("#extra-clue-button").setAttribute("aria-expanded", "false");
+    ["gift-message", "gift-wish", "gift-signature", "reward-note", "reward-photo", "review-answer", "review-prompt"].forEach(id => document.getElementById(id).replaceChildren());
     $$('.memory-photo').forEach(figure => {
       $(".album-note", figure).hidden = true;
       const button = $(".memory-note-button", figure);
@@ -480,13 +480,69 @@
   }
   function renderGift() {
     $("#gift-message").textContent = config.gift.message;
-    $("#gift-clue").textContent = config.gift.clue;
+    $("#gift-wish").textContent = config.gift.wish;
     $("#gift-signature").textContent = config.gift.signature;
-    $("#extra-clue-button").hidden = !config.gift.extraClue;
     $("#surprise-box").hidden = true; $("#gift-reveal").hidden = false;
     $("#sorpresa").setAttribute("aria-labelledby", "gift-title");
     $("#gift-reveal h2").id = "gift-title";
     document.body.classList.toggle("is-finale", visibleScreen === "surprise");
+  }
+  function stopTunnel() {
+    tunnelTimers.forEach(clearTimeout); tunnelTimers.clear();
+    $("#birthday-tunnel").hidden = true;
+    $("#tunnel-description").textContent = "";
+    document.body.classList.remove("tunnel-active");
+  }
+  function scheduleTunnel(callback, delay) {
+    const timer = setTimeout(() => { tunnelTimers.delete(timer); callback(); }, delay);
+    tunnelTimers.add(timer);
+  }
+  function startTunnel() {
+    if (visibleScreen !== "surprise" || !journey.snapshot().revealed) return;
+    stopTunnel();
+    const rings = $("#tunnel-rings");
+    rings.replaceChildren(...Array.from({ length: 9 }, (_, index) => {
+      const ring = element("span", "tunnel-ring");
+      ring.style.setProperty("--ring-delay", `${index * -.55}s`);
+      return ring;
+    }));
+    const sources = [...new Set(config.photos.map(photo => photo.src).filter(src => src && !/^(?:javascript|vbscript):/i.test(src.trim())))];
+    const destinations = [
+      ["-31vw", "-25vh"], ["28vw", "-20vh"], ["-20vw", "22vh"], ["32vw", "25vh"],
+      ["-38vw", "4vh"], ["15vw", "-32vh"], ["-28vw", "29vh"], ["35vw", "-26vh"],
+      ["-8vw", "-35vh"], ["29vw", "18vh"], ["-35vw", "-12vh"], ["8vw", "29vh"],
+      ["-16vw", "-27vh"], ["36vw", "3vh"]
+    ];
+    $("#tunnel-photo-field").replaceChildren(...(sources.length ? destinations : []).map(([x, y], index) => {
+      const bubble = element("span", "tunnel-photo");
+      bubble.style.setProperty("--flight-x", x);
+      bubble.style.setProperty("--flight-y", y);
+      bubble.style.setProperty("--flight-delay", `${index * 2.1}s`);
+      const img = element("img");
+      img.src = sources[index % sources.length]; img.alt = ""; img.decoding = "async";
+      bubble.append(img);
+      return bubble;
+    }));
+    const phrases = [
+      `¡Feliz cumpleaños, ${config.name}! Hoy el universo celebra tu existencia.`,
+      "Cada sueño tuyo merece llegar tan lejos como tu corazón.",
+      "Tu alegría deja luz incluso donde no la ves.",
+      "Que la vida te abrace con la misma belleza que tú le das.",
+      "Hay un mundo entero esperando todo lo que serás.",
+      config.gift.wish
+    ];
+    $("#tunnel-phrases").replaceChildren(...phrases.map((phrase, index) => {
+      const line = element("p", index === phrases.length - 1 ? "tunnel-phrase is-final" : "tunnel-phrase", phrase);
+      line.style.setProperty("--phrase-delay", `${index * 4}s`);
+      line.style.setProperty("--phrase-duration", index === phrases.length - 1 ? "10s" : "4s");
+      return line;
+    }));
+    $("#birthday-tunnel").hidden = false;
+    document.body.classList.add("tunnel-active");
+    $("#tunnel-description").textContent = phrases[0];
+    phrases.slice(1).forEach((phrase, index) => scheduleTunnel(() => { $("#tunnel-description").textContent = phrase; }, (index + 1) * 4000));
+    scheduleTunnel(() => showScreen("welcome"), tunnelDuration);
+    $("#tunnel-skip").focus({ preventScroll: true });
   }
   $("#reveal-button").addEventListener("click", () => {
     if (experience.screen() !== "surprise" || openingGift || journey.snapshot().revealed) return;
@@ -499,19 +555,15 @@
       openingGift = false;
       if (!journey.reveal()) return;
       persist(); renderGift(); effects.finale(); mascot.react("cheer", "¡Feliz cumpleaños! ♡"); effects.refresh();
-      $("#gift-reveal").scrollIntoView({ behavior: "smooth", block: "start" });
-      const title = $("#gift-title"); title.tabIndex = -1; title.focus({ preventScroll: true });
+      startTunnel();
     }, effects.isPaused() ? 0 : 1350);
   });
-  $("#extra-clue-button").addEventListener("click", () => {
-    const extra = $("#extra-clue"); extra.textContent = config.gift.extraClue; extra.hidden = !extra.hidden;
-    $("#extra-clue-button").textContent = extra.hidden ? "Necesito una pista más ↗" : "Guardar esta pista ♡";
-    $("#extra-clue-button").setAttribute("aria-expanded", String(!extra.hidden));
-    effects.refresh();
+  $("#tunnel-skip").addEventListener("click", () => showScreen("welcome"));
+  $("#birthday-tunnel").addEventListener("keydown", event => {
+    if (event.key === "Escape") { event.preventDefault(); showScreen("welcome"); }
+    if (event.key === "Tab") { event.preventDefault(); $("#tunnel-skip").focus(); }
   });
-  $("#extra-clue-button").setAttribute("aria-expanded", "false");
-  $("#extra-clue-button").setAttribute("aria-controls", "extra-clue");
-  $("#celebrate-button").addEventListener("click", () => effects.finale());
+  $("#celebrate-button").addEventListener("click", startTunnel);
   function confetti(count) {
     effects.confetti(count);
   }

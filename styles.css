@@ -351,3 +351,40 @@ body[data-motion="paused"] *, body[data-motion="paused"] *::before, body[data-mo
 /* Las burbujas viven en el fondo y la interfaz conserva una capa de lectura encima. */
 .site-header, main, .mascot-dock, .site-footer { position: relative; z-index: 2; }
 @media (prefers-reduced-motion: reduce) { .scene-entrance .floating-bubble { animation: none; } }
+
+/* El cierre transforma los recuerdos en un viaje de cumpleaños de treinta segundos. */
+.birthday-wish { max-width: 660px; margin: 34px auto 0; padding: clamp(28px, 5vw, 48px); border: 1px solid #dca2be; border-radius: 24px; background: radial-gradient(circle at 50% 0, #fff7d9, #fff0f7 65%, #fffafd); box-shadow: 0 18px 55px #b8457522, inset 0 0 0 5px #ffffff8c; }
+.birthday-wish p { margin-top: 16px; color: #8d315c; font-family: var(--serif); font-size: clamp(1.45rem, 2.4vw, 2rem); line-height: 1.65; text-wrap: pretty; }
+.is-finale .birthday-wish { animation: chapter-arrive .8s .45s both; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+body.tunnel-active { overflow: hidden; }
+body.tunnel-active .bubble-layer { visibility: hidden; }
+.birthday-tunnel { position: fixed; inset: 0; z-index: 200; overflow: hidden; color: #fffaf7; background: radial-gradient(circle at 50% 48%, #a43272 0, #6e245d 28%, #361b4d 65%, #160f32 100%); }
+.tunnel-depth, .tunnel-rings, .tunnel-photo-field { position: absolute; inset: 0; pointer-events: none; }
+.tunnel-depth { perspective: 900px; perspective-origin: 50% 50%; overflow: hidden; }
+.tunnel-rings, .tunnel-photo-field { transform-style: preserve-3d; }
+.tunnel-depth::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 15%, #2b17395c 72%, #150f31c4 100%); pointer-events: none; }
+.tunnel-rays { position: absolute; inset: -60vmax; background: repeating-conic-gradient(from 0deg at 50% 50%, #ffdb9724 0deg 4deg, transparent 5deg 24deg); mask-image: radial-gradient(circle, transparent 0 7%, #000 38%, transparent 76%); animation: tunnel-rays-turn 24s linear infinite; }
+.tunnel-ring { position: absolute; top: 50%; left: 50%; width: min(42vw, 540px); aspect-ratio: 1; border: 2px solid #ffeacaa8; border-radius: 28%; box-shadow: 0 0 28px #ffe0a880, inset 0 0 24px #ffb5d980; opacity: 0; animation: tunnel-ring-flight 5s linear var(--ring-delay) infinite; will-change: transform, opacity; }
+.tunnel-photo { position: absolute; top: 50%; left: 50%; width: clamp(94px, 12vw, 160px); aspect-ratio: 1; padding: 5px; border: 3px solid #fff8e4d9; border-radius: 50%; background: #fff8f0a1; box-shadow: 0 0 0 8px #ffcfec36, 0 16px 40px #1b0d34a8, inset 0 0 18px #fff9; opacity: 0; overflow: hidden; animation: tunnel-photo-flight 7.5s cubic-bezier(.15,.45,.35,1) var(--flight-delay) both; will-change: transform, opacity; }
+.tunnel-photo::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: linear-gradient(145deg, #ffffffa6, transparent 36%, transparent 65%, #ee9cc566); pointer-events: none; }
+.tunnel-photo img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.tunnel-content { position: relative; z-index: 3; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 18px; padding: clamp(24px, 5vh, 54px) 18px 26px; text-align: center; }
+.tunnel-content .eyebrow { color: #ffe1a9; text-shadow: 0 2px 14px #210c2d; }
+.tunnel-content h2 { max-width: 850px; color: #fffaf7; font-size: clamp(2rem, 5vw, 4.6rem); line-height: 1.15; text-shadow: 0 5px 28px #190c37; text-wrap: balance; }
+.tunnel-content h2 em { color: #ffe39d; text-shadow: 0 0 28px #ffd2928c; }
+.tunnel-phrases { position: relative; display: grid; place-items: center; width: min(780px, 94vw); min-height: 250px; }
+.tunnel-phrase { grid-area: 1 / 1; width: 100%; max-width: 760px; padding: clamp(22px, 4vw, 38px); border: 1px solid #ffefdab3; border-radius: 26px; background: linear-gradient(135deg, #3f174cb8, #8d31639c); box-shadow: 0 16px 55px #190b3399, inset 0 0 30px #ffd6e02a; backdrop-filter: blur(12px); color: #fffaf5; font-family: var(--serif); font-size: clamp(1.5rem, 3.3vw, 2.8rem); line-height: 1.35; text-wrap: balance; opacity: 0; animation: tunnel-words var(--phrase-duration) ease-in-out var(--phrase-delay) both; }
+.tunnel-phrase.is-final { font-size: clamp(1.3rem, 2.5vw, 2.1rem); line-height: 1.5; border-color: #ffdea2; background: linear-gradient(135deg, #792555e8, #54234dbd); }
+.tunnel-progress { width: min(420px, 72vw); height: 4px; overflow: hidden; border-radius: 99px; background: #fff8ee54; }
+.tunnel-progress span { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #ffd999, #fff4cf, #ffc1df); box-shadow: 0 0 12px #ffe4b8; transform-origin: left; animation: tunnel-progress 30s linear forwards; }
+.tunnel-skip { min-height: 46px; padding: 10px 20px; border: 1px solid #fff6dfad; border-radius: 999px; background: #331a4aa8; color: #fffaf4; font-size: .875rem; box-shadow: 0 8px 25px #170d2f7a; }
+.tunnel-skip:hover, .tunnel-skip:focus-visible { background: #7d2e65; }
+@keyframes tunnel-rays-turn { to { transform: rotate(360deg); } }
+@keyframes tunnel-ring-flight { 0% { transform: translate(-50%, -50%) translateZ(-1000px) rotate(45deg) scale(.2); opacity: 0; } 18% { opacity: .7; } 75% { opacity: .55; } 100% { transform: translate(-50%, -50%) translateZ(500px) rotate(55deg) scale(2); opacity: 0; } }
+@keyframes tunnel-photo-flight { 0% { transform: translate(-50%, -50%) translate3d(0, 0, -850px) scale(.2) rotate(-22deg); opacity: 0; } 18% { opacity: .95; } 72% { opacity: 1; } 100% { transform: translate(-50%, -50%) translate3d(var(--flight-x), var(--flight-y), 220px) scale(1.35) rotate(18deg); opacity: 0; } }
+@keyframes tunnel-words { 0%, 100% { opacity: 0; transform: translateY(24px) rotateX(18deg) scale(.88); } 16%, 78% { opacity: 1; transform: translateY(0) rotateX(0) scale(1); } }
+@keyframes tunnel-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 540px) { .birthday-wish { padding: 25px 20px; } .tunnel-content { gap: 8px; padding-block: 20px; } .tunnel-content h2 { font-size: clamp(1.9rem, 7vw, 2.8rem); } .tunnel-phrases { min-height: 280px; } .tunnel-photo { width: 96px; } .tunnel-phrase { font-size: 1.55rem; padding: 24px 18px; } .tunnel-phrase.is-final { font-size: 1.32rem; } }
+@media (max-height: 650px) { .birthday-tunnel { overflow-y: auto; } .tunnel-content { gap: 8px; padding-block: 16px; } .tunnel-content h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); } .tunnel-phrases { min-height: 0; } .tunnel-phrase { padding: 17px; font-size: clamp(1.25rem, 2.5vw, 1.8rem); } .tunnel-phrase.is-final { font-size: clamp(1.1rem, 2.2vw, 1.5rem); line-height: 1.35; } }
+@media (prefers-reduced-motion: reduce) { .tunnel-rays, .tunnel-ring { display: none; } .tunnel-photo { transform: translate(-50%, -50%) translate(var(--flight-x), var(--flight-y)) scale(.7); opacity: .5; } .tunnel-photo:nth-child(n+7), .tunnel-phrase:not(.is-final) { display: none; } .tunnel-phrase.is-final { opacity: 1; transform: none; } .tunnel-progress span { transform: scaleX(1); } }

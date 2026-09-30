@@ -113,9 +113,9 @@
         <span class="eyebrow">HOY TODO LO BONITO ES PARA TI</span>
         <h2>¡Feliz cumpleaños,<br><em data-name>Thais</em>!</h2>
         <p class="gift-message" id="gift-message"></p>
-        <div class="clue-card"><span class="eyebrow">TU REGALO TE ESTÁ ESPERANDO</span><h3>Una última pista…</h3><p id="gift-clue"></p><button class="text-button" id="extra-clue-button">Necesito una pista más <span aria-hidden="true">↗</span></button><p id="extra-clue" hidden></p></div>
+        <div class="birthday-wish"><span class="eyebrow">PARA QUE NUNCA LO OLVIDES</span><p id="gift-wish"></p></div>
         <p class="gift-signature" id="gift-signature"></p>
-        <button class="button button-primary path-action" id="celebrate-button">¡Que siga la fiesta! <span aria-hidden="true">🎉</span></button>
+        <button class="button button-primary path-action" id="celebrate-button">Volver a vivir este momento <span aria-hidden="true">✦</span></button>
       </article>
       <div class="screen-actions"><button class="text-button" id="back-to-memories">Volver a mis recuerdos <span aria-hidden="true">♡</span></button></div>
     </section>
@@ -135,5 +135,16 @@
   <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
   <div class="burst-layer" id="burst-layer" aria-hidden="true"></div>
   <div class="transition-sparkles" id="transition-sparkles" aria-hidden="true"></div>
+  <div class="birthday-tunnel" id="birthday-tunnel" role="dialog" aria-modal="true" aria-labelledby="tunnel-title" aria-describedby="tunnel-description" hidden>
+    <div class="tunnel-depth" aria-hidden="true"><div class="tunnel-rays"></div><div class="tunnel-rings" id="tunnel-rings"></div><div class="tunnel-photo-field" id="tunnel-photo-field"></div></div>
+    <div class="tunnel-content">
+      <span class="eyebrow">UN VIAJE HECHO DE LUZ Y RECUERDOS</span>
+      <h2 id="tunnel-title">El universo celebra que existes, <em data-name>Thais</em>.</h2>
+      <div class="tunnel-phrases" id="tunnel-phrases" aria-hidden="true"></div>
+      <p class="sr-only" id="tunnel-description" aria-live="polite"></p>
+      <div class="tunnel-progress" aria-hidden="true"><span></span></div>
+      <button class="tunnel-skip" id="tunnel-skip">Volver al inicio ahora <span aria-hidden="true">↗</span></button>
+    </div>
+  </div>
 </body>
 </html>

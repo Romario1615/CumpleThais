@@ -2,16 +2,14 @@
    Pon las fotos en assets/fotos/ y escribe su ruta en src, por ejemplo:
    { src: "assets/fotos/playa.jpg", caption: "Un día en la playa", alt: "Thais en la playa" }
    Las fotos vacías se muestran como espacios de collage, sin imágenes rotas.
-   La pista de ejemplo apunta a una almohada: cámbiala por el escondite real.
 */
 window.BIRTHDAY_CONFIG = {
   name: "Thais",
   // Cambia este identificador si quieres empezar una nueva edición desde cero.
   storageKey: "cumple-thais-2026-v1",
   gift: {
-    message: "Hoy celebramos tu cumpleaños y todo lo bueno que se viene en este nuevo año. Ojalá esté lleno de risas, buenos momentos y buena compañía. Y como los regalos también son parte de la fiesta… hay algo más para ti.",
-    clue: "Donde los sueños empiezan y el día descansa, hay un rincón suave que guarda algo para ti. Busca debajo de donde apoyas tu cabeza al dormir.",
-    extraClue: "Mira debajo de tu almohada. Ahí te espera una sorpresa.",
+    message: "Hoy celebramos tu vida, tus sueños y esa manera tuya de llenar de luz los momentos más sencillos. Este día es tuyo: déjate querer, reír y brillar sin medida.",
+    wish: "Tu grandeza no cabe en los años que cumples, sino en la luz que despiertas al existir. Que la vida te devuelva en felicidad infinita todo el amor que has sembrado, y que cada sueño te recuerde lo extraordinaria que eres.",
     signature: "Con todo el cariño del mundo. ♡"
   },
   photos: [

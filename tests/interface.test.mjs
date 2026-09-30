@@ -48,7 +48,7 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
     };
   } else {
     const nativeTimeout = window.setTimeout.bind(window);
-    window.setTimeout = (callback, delay) => nativeTimeout(callback, Math.min(delay, 5));
+    window.setTimeout = (callback, delay) => nativeTimeout(callback, delay >= 30000 ? delay : Math.min(delay, 5));
   }
   if (options.width) window.innerWidth = options.width;
   if (options.height) window.innerHeight = options.height;
@@ -130,7 +130,6 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
   let page = withStyles({ completed: 4, revealed: true });
   try {
     page.screen('surprise');
-    page.click('#extra-clue-button');
     page.click('#back-to-memories');
     page.click('.memory-note-button');
     page.click('#home-button'); page.screen('welcome');
@@ -146,7 +145,8 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
     assert.equal(page.document.querySelector('#review-button').disabled, true);
     assert.equal(page.document.querySelector('#gift-reveal').hidden, true);
     assert.equal(page.document.querySelector('#reveal-button').disabled, true);
-    assert.equal(page.document.querySelector('#extra-clue').textContent, '');
+    assert.equal(page.document.querySelector('#gift-wish').textContent, '');
+    assert.equal(page.document.querySelector('#birthday-tunnel').hidden, true);
     assert.ok([...page.document.querySelectorAll('.album-note')].every(node => node.hidden));
     assert.equal(page.window.localStorage.getItem('otro-proyecto'), 'conservar');
     const cleanProgress = page.snapshot();
@@ -211,12 +211,15 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
     page.click('#reveal-button'); await wait();
     assert.equal(page.document.querySelector('#gift-reveal').hidden, false);
     assert.equal(page.document.body.classList.contains('is-finale'), true);
+    assert.equal(page.document.querySelector('#birthday-tunnel').hidden, false);
     const completedProgress = page.snapshot();
-    page.click('#home-button'); page.screen('welcome');
+    page.click('#tunnel-skip'); page.screen('welcome');
     assert.deepEqual(page.snapshot(), completedProgress);
     page.click('#start-button'); page.screen('surprise');
-    page.click('#extra-clue-button');
-    assert.equal(page.document.querySelector('#extra-clue').hidden, false);
+    page.click('#celebrate-button');
+    assert.equal(page.document.querySelector('#birthday-tunnel').hidden, false);
+    page.click('#tunnel-skip'); page.screen('welcome');
+    page.click('#start-button'); page.screen('surprise');
     page.click('#back-to-memories'); page.screen('album');
     page.click('#album-continue'); page.screen('surprise');
     assert.equal(page.document.activeElement.id, 'gift-title');
@@ -224,6 +227,31 @@ test('reiniciar borra el avance, persiste y permite completar de nuevo toda la a
     page.screen('surprise');
     assert.equal(page.document.querySelector('#gift-reveal').hidden, false);
     assert.deepEqual(page.errors, []);
+  } finally { page.dom.window.close(); }
+});
+
+test('el túnel muestra las fotos y vuelve al inicio al cumplir treinta segundos', () => {
+  const page = loadPage({ completed: 4, revealed: true }, true, undefined, { manualClock: true, styles: true });
+  try {
+    page.screen('surprise');
+    assert.doesNotMatch(page.document.querySelector('#gift-reveal').textContent, /última pista|necesito una pista/i);
+    page.click('#celebrate-button');
+    const tunnel = page.document.querySelector('#birthday-tunnel');
+    assert.equal(tunnel.hidden, false);
+    assert.equal(page.document.querySelectorAll('.tunnel-ring').length, 9);
+    const photos = [...page.document.querySelectorAll('#tunnel-photo-field img')];
+    assert.equal(photos.length, 14);
+    assert.deepEqual(new Set(photos.map(photo => photo.getAttribute('src'))), new Set(page.window.BIRTHDAY_CONFIG.photos.map(photo => photo.src)));
+    const progress = page.snapshot();
+    page.advance(20000);
+    assert.match(page.document.querySelector('#tunnel-description').textContent, /Tu grandeza/);
+    page.advance(9999);
+    assert.equal(tunnel.hidden, false);
+    page.advance(1);
+    page.screen('welcome');
+    assert.equal(tunnel.hidden, true);
+    assert.equal(page.document.body.classList.contains('tunnel-active'), false);
+    assert.deepEqual(page.snapshot(), progress);
   } finally { page.dom.window.close(); }
 });
 

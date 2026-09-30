@@ -20,8 +20,16 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
   window.HTMLElement.prototype.scrollIntoView = () => {};
   window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
   window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+  window.HTMLMediaElement.prototype.pause = () => {};
   if (options.audioEvents) {
     const events = options.audioEvents;
+    window.HTMLMediaElement.prototype.play = function () {
+      events.musicPlays++;
+      events.media = this;
+      return Promise.resolve();
+    };
+    window.HTMLMediaElement.prototype.pause = function () { events.musicPauses++; };
     window.AudioContext = class {
       constructor() { events.constructed++; this.currentTime = 0; this.state = 'suspended'; this.destination = {}; }
       createGain() { return { gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {}, setTargetAtTime() {} }, connect() {}, disconnect() {} }; }
@@ -308,20 +316,28 @@ test('el repaso oculta las respuestas pendientes y permite retomar el recuerdo p
   } finally { page.dom.window.close(); }
 });
 
-test('la música empieza con un botón y el control de sonido la silencia', async () => {
-  const events = { constructed: 0, notes: 0 };
+test('el audio de assets reemplaza la melodía y conserva los sonidos de botones', async () => {
+  const events = { constructed: 0, notes: 0, musicPlays: 0, musicPauses: 0 };
   const page = loadPage(undefined, true, undefined, { audioEvents: events });
   try {
     const toggle = page.document.querySelector('#sound-toggle');
     assert.equal(toggle.hidden, false);
     assert.equal(events.constructed, 0, 'no hay audio automático');
+    assert.equal(events.musicPlays, 0, 'la canción espera a la primera interacción');
     page.click('#start-button');
     await wait();
     assert.equal(events.constructed, 1);
-    assert.ok(events.notes > 0, 'la música y el botón programan notas');
+    assert.equal(events.musicPlays, 1);
+    assert.match(events.media.src, /assets\/videoplayback\.weba$/);
+    assert.equal(events.media.loop, true);
+    assert.ok(events.notes > 0, 'el botón conserva su sonido');
+    const buttonNotes = events.notes;
+    await wait(250);
+    assert.equal(events.notes, buttonNotes, 'ya no se programa la melodía anterior');
     page.click('#sound-toggle');
     assert.equal(toggle.getAttribute('aria-pressed'), 'false');
     assert.equal(page.window.localStorage.getItem('cumple-thais-2026-v1:sound'), 'off');
+    assert.equal(events.musicPauses, 1);
     const mutedNotes = events.notes;
     page.click('#home-button');
     await wait();
@@ -329,7 +345,10 @@ test('la música empieza con un botón y el control de sonido la silencia', asyn
     page.click('#sound-toggle');
     await wait();
     assert.equal(toggle.getAttribute('aria-pressed'), 'true');
-    assert.ok(events.notes > mutedNotes);
+    assert.equal(events.musicPlays, 2, 'la canción se reanuda');
+    page.click('#start-button');
+    await wait();
+    assert.ok(events.notes > mutedNotes, 'los botones siguen sonando');
     assert.deepEqual(page.errors, []);
   } finally { page.dom.window.close(); }
 });

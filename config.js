@@ -21,7 +21,7 @@ window.BIRTHDAY_CONFIG = {
     { src: "assets/fotos/T4.png", caption: "Un lindo recuerdo", alt: "Un recuerdo especial de Thais" },
     { src: "assets/fotos/T5.png", caption: "Risas que se quedan", alt: "Un momento de risas" },
     { src: "assets/fotos/T6.png", caption: "Una pequeña aventura", alt: "Un momento de aventura" },
-    { src: "", caption: "Así de bonito", alt: "Un recuerdo bonito con Thais" },
-    { src: "", caption: "Así de especial ♡", alt: "Un recuerdo favorito de Thais" }
+    { src: "assets/fotos/T1.png", caption: "Así de bonito", alt: "Un recuerdo bonito con Thais" },
+    { src: "assets/fotos/T2.png", caption: "Así de especial ♡", alt: "Un recuerdo favorito de Thais" }
   ]
 };

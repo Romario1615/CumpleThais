@@ -12,4 +12,9 @@ const html = await readFile(path.join(output, 'index.html'), 'utf8');
 for (const [, resource] of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
   if (!/^(https?:|data:)/.test(resource)) await stat(path.join(output, resource));
 }
+const config = await readFile(path.join(root, 'config.js'), 'utf8');
+const liveConfig = config.slice(config.indexOf('window.BIRTHDAY_CONFIG ='));
+for (const [, resource] of liveConfig.matchAll(/(?:src|tunnelSrc):\s*"(assets\/[^\"]+)"/g)) {
+  await stat(path.join(output, resource));
+}
 console.log('Página lista: HTML, CSS, JavaScript y fotos copiados a dist/.');

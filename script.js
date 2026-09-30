@@ -45,6 +45,24 @@
   let giftTimer;
   const tunnelTimers = new Set();
   const tunnelDuration = 30000;
+  const tunnelPreloads = [];
+  let tunnelPreloaded = false;
+  function tunnelPhotoSources() {
+    return [...new Set(config.photos.map(photo => photo.tunnelSrc || photo.src)
+      .filter(src => src && !/^(?:javascript|vbscript):/i.test(src.trim())))];
+  }
+  function preloadTunnelPhotos() {
+    if (tunnelPreloaded) return;
+    tunnelPreloaded = true;
+    tunnelPhotoSources().forEach(src => {
+      const image = new Image();
+      image.decoding = "async";
+      image.fetchPriority = "low";
+      image.src = src;
+      if (image.decode) image.decode().catch(() => {});
+      tunnelPreloads.push(image);
+    });
+  }
 
   function later(callback, delay) {
     const id = roundId;
@@ -89,7 +107,9 @@
     };
     if (photo.src && !/^(?:javascript|vbscript):/i.test(photo.src.trim())) {
       const img = element("img", "photo-image");
-      img.alt = photo.alt || photo.caption; img.loading = index < 3 ? "eager" : "lazy"; img.decoding = "async";
+      const eager = index < 3 || figure.id === "reward-photo";
+      img.alt = photo.alt || photo.caption; img.loading = eager ? "eager" : "lazy"; img.decoding = "async";
+      img.fetchPriority = eager ? "high" : "auto";
       img.addEventListener("error", () => { img.replaceWith(placeholder()); }, { once: true });
       img.src = photo.src; figure.append(img);
     } else figure.append(placeholder());
@@ -496,6 +516,7 @@
     $("#birthday-tunnel").hidden = true;
     $("#tunnel-description").textContent = "";
     document.body.classList.remove("tunnel-active");
+    effects.setTunnelActive(false);
     audio.setScene(visibleScreen);
   }
   function scheduleTunnel(callback, delay) {
@@ -505,14 +526,19 @@
   function startTunnel() {
     if (visibleScreen !== "surprise" || !journey.snapshot().revealed) return;
     stopTunnel();
+    preloadTunnelPhotos();
+    const mobile = window.innerWidth < 600;
     const rings = $("#tunnel-rings");
-    rings.replaceChildren(...Array.from({ length: 9 }, (_, index) => {
+    rings.replaceChildren(...Array.from({ length: mobile ? 4 : 9 }, (_, index) => {
       const ring = element("span", "tunnel-ring");
       ring.style.setProperty("--ring-delay", `${index * -.55}s`);
       return ring;
     }));
-    const sources = [...new Set(config.photos.map(photo => photo.src).filter(src => src && !/^(?:javascript|vbscript):/i.test(src.trim())))];
-    const destinations = [
+    const sources = tunnelPhotoSources();
+    const destinations = mobile ? [
+      ["-43vw", "-27vh"], ["43vw", "-18vh"], ["-43vw", "23vh"], ["43vw", "28vh"],
+      ["-43vw", "2vh"], ["43vw", "7vh"], ["-43vw", "-33vh"], ["43vw", "33vh"]
+    ] : [
       ["-31vw", "-25vh"], ["28vw", "-20vh"], ["-20vw", "22vh"], ["32vw", "25vh"],
       ["-38vw", "4vh"], ["15vw", "-32vh"], ["-28vw", "29vh"], ["35vw", "-26vh"],
       ["-8vw", "-35vh"], ["29vw", "18vh"], ["-35vw", "-12vh"], ["8vw", "29vh"],
@@ -522,9 +548,10 @@
       const bubble = element("span", "tunnel-photo");
       bubble.style.setProperty("--flight-x", x);
       bubble.style.setProperty("--flight-y", y);
-      bubble.style.setProperty("--flight-delay", `${index * 2.1}s`);
+      bubble.style.setProperty("--flight-delay", `${index * (mobile ? 3.45 : 1.7)}s`);
       const img = element("img");
       img.src = sources[index % sources.length]; img.alt = ""; img.decoding = "async";
+      img.width = 320; img.height = 320;
       bubble.append(img);
       return bubble;
     }));
@@ -544,6 +571,7 @@
     }));
     $("#birthday-tunnel").hidden = false;
     document.body.classList.add("tunnel-active");
+    effects.setTunnelActive(true);
     audio.setScene("tunnel"); audio.celebrate();
     $("#tunnel-description").textContent = phrases[0];
     phrases.slice(1).forEach((phrase, index) => scheduleTunnel(() => { $("#tunnel-description").textContent = phrase; }, (index + 1) * 4000));
@@ -628,6 +656,7 @@
   }
   showScreen(experience.screen(), false);
   startPreloader();
+  setTimeout(preloadTunnelPhotos, 900);
   // Mejora progresiva: los navegadores sin WebMCP mantienen todas las funciones.
   if (document.modelContext?.registerTool) {
     const lifecycle = new AbortController();

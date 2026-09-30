@@ -18,7 +18,8 @@
     let height = window.innerHeight;
     let protectedAreas = [];
     let rhythmSource = () => 0;
-    const bubbleCount = width < 600 ? 5 : 8;
+    let tunnelActive = false;
+    const bubbleCount = width < 600 ? 3 : 8;
     // Cada familia mantiene la misma cantidad: corazones, estrellas, regalos y círculos.
     const extraBubbleCount = bubbleCount * 3;
     const bubbleKinds = {
@@ -158,7 +159,7 @@
           if (b.phase !== "floating") continue;
           const dx = b.x + b.size / 2 - a.x - a.size / 2;
           const dy = b.y + b.size / 2 - a.y - a.size / 2;
-          const minimum = (a.size + b.size) / 2 + 5;
+          const minimum = (a.size + b.size) / 2 + (width < 600 ? 12 : 5);
           const distance = Math.hypot(dx, dy);
           if (distance >= minimum) continue;
           const nx = distance ? dx / distance : 1;
@@ -180,7 +181,10 @@
     }
     function refresh() {
       width = window.innerWidth; height = window.innerHeight;
-      protectedAreas = [...document.querySelectorAll("header, footer, main button, main input, .home-return, .mascot-companion")]
+      const protectedSelector = width < 600
+        ? "header, footer, main button, main input, main h1, main h2, main h3, main p, .home-return, .mascot-companion"
+        : "header, footer, main button, main input, .home-return, .mascot-companion";
+      protectedAreas = [...document.querySelectorAll(protectedSelector)]
         .filter(node => node.getClientRects().length)
         .map(node => node.getBoundingClientRect());
       for (const bubble of bubbles) {
@@ -189,7 +193,7 @@
         bubble.x = Math.max(4, Math.min(bubble.x, width - bubble.size - 4));
         bubble.y = Math.max(4, Math.min(bubble.y, Math.max(4, height - bubble.size - 4)));
       }
-      for (let pass = 0; pass < 4; pass++) resolveCollisions();
+      for (let pass = 0; pass < (width < 600 ? 6 : 4); pass++) resolveCollisions();
       paint();
     }
     function place(bubble, initial = false) {
@@ -214,7 +218,7 @@
           return Math.min(nearest, Math.hypot(dx, dy) - (bubble.size + other.size) / 2);
         }, Infinity);
         if (clearance > best.clearance) best = { x, y, clearance };
-        if (clearance >= 8) break;
+        if (clearance >= (width < 600 ? 14 : 8)) break;
       }
       bubble.x = best.x; bubble.y = best.y;
       bubble.vx = (Math.random() > .5 ? 1 : -1) * (17 + Math.random() * 14);
@@ -250,6 +254,7 @@
         if (bubble.placementId !== placementId) return;
         bubble.generation++;
         place(bubble);
+        for (let pass = 0; pass < 4; pass++) resolveCollisions();
         paint();
       }, 1050 + Math.random() * 900);
     }
@@ -265,6 +270,7 @@
     function tick(time) {
       frame = 0;
       if (document.hidden || isPaused()) { lastTime = 0; return; }
+      if (width < 600 && lastTime && time - lastTime < 28) { frame = requestAnimationFrame(tick); return; }
       const delta = Math.min((time - (lastTime || time)) / 1000, .04);
       lastTime = time;
       const rhythm = rhythmLevel();
@@ -276,7 +282,7 @@
           bubble.x += bubble.vx * delta * (1 + rhythm * .18); bubble.y += bubble.vy * delta * (1 + rhythm * .18);
           keepInBounds(bubble);
         }
-        resolveCollisions();
+        for (let pass = 0; pass < (width < 600 ? 5 : 2); pass++) resolveCollisions();
         paint(rhythm);
       } else updateRhythm(rhythm);
       frame = requestAnimationFrame(tick);
@@ -284,8 +290,13 @@
     function syncMotion() {
       cancelAnimationFrame(frame); frame = 0; lastTime = 0;
       document.body.dataset.motion = isPaused() ? "paused" : "running";
-      if (isPaused() || document.hidden) { stopCelebration(); updateRhythm(0); }
+      if (isPaused() || document.hidden || tunnelActive) { stopCelebration(); updateRhythm(0); }
       else frame = requestAnimationFrame(tick);
+    }
+    function setTunnelActive(active) {
+      if (tunnelActive === active) return;
+      tunnelActive = active;
+      syncMotion();
     }
     function enterScene() {
       if (settleTimer) clearTimeout(settleTimer);
@@ -344,7 +355,7 @@
       refresh(); syncMotion();
     });
     refresh(); syncMotion();
-    return { confetti, burst, transition, finale, refresh, enterScene, isPaused, setRhythmSource };
+    return { confetti, burst, transition, finale, refresh, enterScene, isPaused, setRhythmSource, setTunnelActive };
   }
   root.BirthdayEffects = Object.freeze({ create });
 })(window);

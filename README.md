@@ -17,6 +17,7 @@ Edita **config.js**:
 - `gift.wish`: frase final de cumpleaños que aparece al terminar el túnel.
 - `gift.signature`: despedida o firma.
 - `photos`: rutas, textos y descripciones de las ocho fotos. Añade `note` a una foto para personalizar las palabras que aparecen al abrir su recuerdo.
+- `photos[].tunnelSrc`: miniatura opcional para el túnel; si falta, se usa `src`.
 - `storageKey`: cambia el identificador para comenzar una nueva edición sin progreso guardado.
 
 Guarda las imágenes en `assets/fotos/`. Ejemplo de una entrada:
@@ -26,6 +27,8 @@ Guarda las imágenes en `assets/fotos/`. Ejemplo de una entrada:
 ```
 
 Los tres primeros espacios aparecen en la portada. Los siguientes cuatro se desbloquean, uno por reto, y el quinto aparece al completar el álbum. Cada recuerdo del álbum permite abrir y cerrar sus palabras. Un `src` vacío conserva el espacio para foto. Las imágenes se recortan de forma uniforme con `object-fit: cover`.
+
+Las seis fotos incluidas tienen versiones WebP ligeras para la página y miniaturas cuadradas para el túnel. Los PNG originales se conservan en `assets/fotos/`.
 
 ## Recorrido
 

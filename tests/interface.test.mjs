@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
@@ -50,7 +50,11 @@ function loadPage(saved, reducedMotion = true, previousMotion, options = {}) {
     let nextId = 0;
     const frames = new Map();
     const timers = new Map();
-    window.Math.random = () => .5;
+    if (options.randomSeed === undefined) window.Math.random = () => .5;
+    else {
+      let seed = options.randomSeed >>> 0;
+      window.Math.random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    }
     window.requestAnimationFrame = callback => { const id = ++nextId; frames.set(id, callback); return id; };
     window.cancelAnimationFrame = id => frames.delete(id);
     window.setTimeout = (callback, delay = 0) => { const id = ++nextId; timers.set(id, { callback, due: clock + delay }); return id; };
@@ -260,7 +264,7 @@ test('el túnel muestra las fotos y vuelve al inicio al cumplir treinta segundos
     assert.equal(page.document.querySelectorAll('.tunnel-ring').length, 9);
     const photos = [...page.document.querySelectorAll('#tunnel-photo-field img')];
     assert.equal(photos.length, 14);
-    assert.deepEqual(new Set(photos.map(photo => photo.getAttribute('src'))), new Set(page.window.BIRTHDAY_CONFIG.photos.map(photo => photo.src)));
+    assert.deepEqual(new Set(photos.map(photo => photo.getAttribute('src'))), new Set(page.window.BIRTHDAY_CONFIG.photos.map(photo => photo.tunnelSrc || photo.src)));
     const progress = page.snapshot();
     page.advance(20000);
     assert.match(page.document.querySelector('#tunnel-description').textContent, /Tu grandeza/);
@@ -271,6 +275,26 @@ test('el túnel muestra las fotos y vuelve al inicio al cumplir treinta segundos
     assert.equal(tunnel.hidden, true);
     assert.equal(page.document.body.classList.contains('tunnel-active'), false);
     assert.deepEqual(page.snapshot(), progress);
+  } finally { page.dom.window.close(); }
+});
+
+test('el túnel móvil usa menos efectos y miniaturas ligeras sin perder recuerdos', async () => {
+  const page = loadPage({ completed: 4, revealed: true }, true, undefined, { width: 390, height: 844 });
+  try {
+    page.click('#celebrate-button');
+    const photos = [...page.document.querySelectorAll('#tunnel-photo-field img')];
+    assert.equal(page.document.querySelectorAll('.tunnel-ring').length, 4);
+    assert.equal(photos.length, 8);
+    assert.equal(new Set(photos.map(photo => photo.getAttribute('src'))).size, 6);
+    assert.ok(photos.every(photo => photo.getAttribute('src').endsWith('-tunnel.webp')));
+    for (let index = 1; index <= 6; index++) {
+      const base = new URL(`../assets/fotos/T${index}`, import.meta.url);
+      const original = await stat(new URL(`${base.href}.png`));
+      const optimized = await stat(new URL(`${base.href}.webp`));
+      const thumbnail = await stat(new URL(`${base.href}-tunnel.webp`));
+      assert.ok(optimized.size < original.size * .2, `T${index} carga mucho menos`);
+      assert.ok(thumbnail.size < 30000, `T${index} tiene miniatura ligera`);
+    }
   } finally { page.dom.window.close(); }
 });
 
@@ -464,26 +488,28 @@ test('si el navegador bloquea el inicio automático, el preloader permite tocar 
 });
 
 test('las burbujas pequeñas se mantienen separadas mientras flotan y rebotan', () => {
-  const page = loadPage(undefined, false, undefined, { manualClock: true, width: 390, height: 844 });
-  try {
-    const checkSeparation = () => {
-      const bubbles = [...page.document.querySelectorAll('#bubble-layer .floating-bubble[data-phase="floating"]')].map(node => {
-        const [, x, y] = node.style.transform.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/);
-        return { x: Number(x), y: Number(y), size: parseFloat(node.style.getPropertyValue('--size')) };
-      });
-      for (let i = 0; i < bubbles.length; i++) {
-        assert.ok(bubbles[i].size <= 60, 'tamaño adecuado para móvil');
-        for (let j = i + 1; j < bubbles.length; j++) {
-          const a = bubbles[i], b = bubbles[j];
-          const distance = Math.hypot(a.x + a.size / 2 - b.x - b.size / 2, a.y + a.size / 2 - b.y - b.size / 2);
-          assert.ok(distance >= (a.size + b.size) / 2 - 1, `burbujas ${i} y ${j} no se solapan`);
+  for (const randomSeed of [undefined, 42, 1337]) {
+    const page = loadPage(undefined, false, undefined, { manualClock: true, width: 390, height: 844, randomSeed });
+    try {
+      const checkSeparation = () => {
+        const bubbles = [...page.document.querySelectorAll('#bubble-layer .floating-bubble[data-phase="floating"]')].map(node => {
+          const [, x, y] = node.style.transform.match(/translate3d\(([-\d.]+)px,\s*([-\d.]+)px/);
+          return { x: Number(x), y: Number(y), size: parseFloat(node.style.getPropertyValue('--size')) };
+        });
+        for (let i = 0; i < bubbles.length; i++) {
+          assert.ok(bubbles[i].size <= 60, 'tamaño adecuado para móvil');
+          for (let j = i + 1; j < bubbles.length; j++) {
+            const a = bubbles[i], b = bubbles[j];
+            const distance = Math.hypot(a.x + a.size / 2 - b.x - b.size / 2, a.y + a.size / 2 - b.y - b.size / 2);
+            assert.ok(distance >= (a.size + b.size) / 2 + 3, `burbujas ${i} y ${j} mantienen espacio`);
+          }
         }
-      }
-    };
-    checkSeparation();
-    for (const step of [3000, 4000, 5000, 8000]) { page.advance(step); checkSeparation(); }
-    assert.deepEqual(page.errors, []);
-  } finally { page.dom.window.close(); }
+      };
+      checkSeparation();
+      for (const step of [3000, 4000, 5000, 8000]) { page.advance(step); checkSeparation(); }
+      assert.deepEqual(page.errors, []);
+    } finally { page.dom.window.close(); }
+  }
 });
 
 test('las burbujas desaparecen, reaparecen y vuelven a moverse después de cada clic', () => {
@@ -524,7 +550,7 @@ test('las explosiones automáticas son escalonadas y continúan también en una 
   const page = loadPage(undefined, false, undefined, { manualClock: true, width: 390, height: 844 });
   try {
     const bubbles = [...page.document.querySelectorAll('.heart-bubble')];
-    assert.equal(bubbles.length, 5);
+    assert.equal(bubbles.length, 3);
     page.advance(8800);
     assert.equal(bubbles[0].dataset.phase, 'popping');
     assert.equal(bubbles[1].dataset.phase, 'floating', 'no explotan todas juntas');

@@ -17,6 +17,7 @@
     let width = window.innerWidth;
     let height = window.innerHeight;
     let protectedAreas = [];
+    let rhythmSource = () => 0;
     const bubbleCount = width < 600 ? 5 : 8;
     // Cada familia mantiene la misma cantidad: corazones, estrellas, regalos y círculos.
     const extraBubbleCount = bubbleCount * 3;
@@ -27,6 +28,18 @@
       round: { className: "round-bubble", label: "burbuja de color", colors: ["#f5a9c8", "#f4d27e", "#a8d8cf", "#c8b4ed", "#f0b0a2"] },
     };
     const isPaused = () => media.matches;
+    function rhythmLevel() {
+      const value = isPaused() || document.hidden ? 0 : Number(rhythmSource());
+      return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+    }
+    function updateRhythm(level) {
+      bubbleLayer.style.setProperty("--rhythm-scale", (.93 + level * .07).toFixed(3));
+      bubbleLayer.style.setProperty("--rhythm-glow", (1 + level * .18).toFixed(3));
+    }
+    function setRhythmSource(source) {
+      rhythmSource = source;
+      updateRhythm(rhythmLevel());
+    }
     const later = (callback, delay, collection = timers) => {
       const timer = setTimeout(() => { collection.delete(timer); callback(); }, delay);
       collection.add(timer);
@@ -240,7 +253,8 @@
         paint();
       }, 1050 + Math.random() * 900);
     }
-    function paint() {
+    function paint(level = rhythmLevel()) {
+      updateRhythm(level);
       for (const bubble of bubbles) {
         const coversControl = protectedAreas.some(rect => bubble.x < rect.right + 5 && bubble.x + bubble.size > rect.left - 5 && bubble.y < rect.bottom + 5 && bubble.y + bubble.size > rect.top - 5);
         bubble.el.style.transform = `translate3d(${bubble.x}px, ${bubble.y}px, 0)`;
@@ -253,23 +267,24 @@
       if (document.hidden || isPaused()) { lastTime = 0; return; }
       const delta = Math.min((time - (lastTime || time)) / 1000, .04);
       lastTime = time;
+      const rhythm = rhythmLevel();
       if (!document.querySelector("dialog[open]")) {
         for (const bubble of bubbles) {
           if (bubble.phase !== "floating" || bubble.el === document.activeElement) continue;
           bubble.age += delta;
           if (bubble.age >= bubble.lifetime) { pop(bubble); continue; }
-          bubble.x += bubble.vx * delta; bubble.y += bubble.vy * delta;
+          bubble.x += bubble.vx * delta * (1 + rhythm * .18); bubble.y += bubble.vy * delta * (1 + rhythm * .18);
           keepInBounds(bubble);
         }
         resolveCollisions();
-        paint();
-      }
+        paint(rhythm);
+      } else updateRhythm(rhythm);
       frame = requestAnimationFrame(tick);
     }
     function syncMotion() {
       cancelAnimationFrame(frame); frame = 0; lastTime = 0;
       document.body.dataset.motion = isPaused() ? "paused" : "running";
-      if (isPaused() || document.hidden) stopCelebration();
+      if (isPaused() || document.hidden) { stopCelebration(); updateRhythm(0); }
       else frame = requestAnimationFrame(tick);
     }
     function enterScene() {
@@ -306,7 +321,6 @@
         bubbleImage.setAttribute("aria-hidden", "true");
         el.append(bubbleImage);
       }
-      el.style.setProperty("--bob-delay", `${-Math.random() * 4}s`);
       const bubble = { el, kind, size: 0, baseSize: 0, index, generation: 0, placementId: 0, x: 0, y: 0, vx: 0, vy: 0, age: 0, lifetime: 0, phase: "floating" };
       place(bubble, initial);
       el.addEventListener("click", () => pop(bubble));
@@ -330,7 +344,7 @@
       refresh(); syncMotion();
     });
     refresh(); syncMotion();
-    return { confetti, burst, transition, finale, refresh, enterScene, isPaused };
+    return { confetti, burst, transition, finale, refresh, enterScene, isPaused, setRhythmSource };
   }
   root.BirthdayEffects = Object.freeze({ create });
 })(window);

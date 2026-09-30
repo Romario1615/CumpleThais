@@ -18,6 +18,7 @@
   const effects = window.BirthdayEffects.create();
   const mascot = window.BirthdayMascot.create();
   const audio = window.BirthdayAudio.create(config.storageKey);
+  effects.setRhythmSource(audio.pulse);
   let storageAvailable = true;
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(config.storageKey) || "{}"); } catch { storageAvailable = false; }

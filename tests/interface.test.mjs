@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
-const sources = await Promise.all(['config.js', 'core.js', 'effects.js', 'mascot.js', 'audio.js', 'script.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
+const sources = await Promise.all(['config.js', 'core.js', 'effects.js', 'mascot.js', 'rhythm.js', 'audio.js', 'script.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
 const wait = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Ejecuta el HTML y los scripts reales. Solo adapta APIs de ventana que JSDOM
@@ -352,6 +352,26 @@ test('el audio de assets comienza en el preloader y conserva los sonidos de boto
     page.click('#start-button');
     await wait();
     assert.ok(events.notes > mutedNotes, 'los botones siguen sonando');
+    assert.deepEqual(page.errors, []);
+  } finally { page.dom.window.close(); }
+});
+
+test('las burbujas pulsan con la posición de la canción y se calman al silenciarla', async () => {
+  const events = { constructed: 0, notes: 0, musicPlays: 0, musicPauses: 0 };
+  const page = loadPage(undefined, false, undefined, { manualClock: true, audioEvents: events, width: 390, height: 844 });
+  try {
+    await wait();
+    const layer = page.document.querySelector('#bubble-layer');
+    events.media.currentTime = .55;
+    page.advance(50);
+    const onBeat = Number(layer.style.getPropertyValue('--rhythm-scale'));
+    events.media.currentTime = 1.1;
+    page.advance(50);
+    const betweenBeats = Number(layer.style.getPropertyValue('--rhythm-scale'));
+    assert.ok(onBeat > betweenBeats + .05, 'el pulso sigue la pista de audio');
+    page.click('#sound-toggle');
+    page.advance(50);
+    assert.equal(Number(layer.style.getPropertyValue('--rhythm-scale')), .93);
     assert.deepEqual(page.errors, []);
   } finally { page.dom.window.close(); }
 });

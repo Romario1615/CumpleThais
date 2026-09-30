@@ -89,6 +89,9 @@
     function setScene(scene) {
       music.volume = scene === "tunnel" ? .5 : .42;
     }
+    function pulse() {
+      return enabled && playing && !root.document.hidden ? root.BirthdayRhythm.at(music.currentTime) : 0;
+    }
     function toggle() {
       enabled = !enabled;
       try { root.localStorage.setItem(preferenceKey, enabled ? "on" : "off"); } catch { /* Preferencia solo durante esta visita. */ }
@@ -100,7 +103,7 @@
       else if (started && enabled) start();
     });
     root.addEventListener("pagehide", stop);
-    return { available: Boolean(root.HTMLAudioElement || AudioContext), enabled: () => enabled, start, playButton, celebrate: start, setScene, toggle };
+    return { available: Boolean(root.HTMLAudioElement || AudioContext), enabled: () => enabled, start, playButton, celebrate: start, setScene, pulse, toggle };
   }
 
   root.BirthdayAudio = Object.freeze({ create });

@@ -135,7 +135,7 @@ body[data-scene="surprise"] .surprise-box { padding-block: 54px; }
   pointer-events: auto; touch-action: manipulation; user-select: none; will-change: transform;
   transition: opacity .2s; cursor: pointer;
 }
-.floating-bubble.heart-bubble > img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 5px #c74b872b); animation: bubble-heartbeat 2.7s ease-in-out var(--bob-delay) infinite; transition: filter .2s; }
+.floating-bubble.heart-bubble > img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: brightness(var(--rhythm-glow, 1)) drop-shadow(0 4px 5px #c74b872b); transition: filter .2s; }
 .floating-bubble.heart-bubble:hover > img, .floating-bubble.heart-bubble:focus-visible > img { filter: drop-shadow(0 0 6px #f290c7a0) drop-shadow(0 7px 10px #ce498140); }
 .floating-bubble.heart-bubble.over-control { opacity: .16; }
 .floating-bubble.heart-bubble.is-popping { pointer-events: none; animation: bubble-pop .42s ease-out forwards; opacity: 0; }
@@ -325,12 +325,13 @@ body[data-motion="paused"] *, body[data-motion="paused"] *::before, body[data-mo
   pointer-events: auto; touch-action: manipulation; user-select: none; will-change: transform;
   transition: opacity .2s; cursor: pointer; font-size: clamp(28px, 5vw, 54px);
   line-height: 1; background: transparent; color: var(--pink);
-  text-shadow: 0 4px 7px #c74b8730; animation: bubble-heartbeat 2.7s ease-in-out var(--bob-delay) infinite;
+  text-shadow: 0 4px 7px #c74b8730; scale: var(--rhythm-scale, .93);
 }
 .floating-bubble.star-bubble { color: #d39b28; filter: drop-shadow(0 5px 7px #d39b2840); }
 .floating-bubble.gift-bubble { color: #9956ad; filter: drop-shadow(0 5px 7px #9956ad40); }
 .round-bubble-shape {
   display: block; width: 100%; height: 100%; border-radius: 50%;
+  filter: brightness(var(--rhythm-glow, 1));
   border: 2px solid #ffffff99;
   background:
     radial-gradient(circle at 28% 23%, #ffffffee 0 7%, #ffffff70 8% 14%, transparent 15%),
@@ -338,19 +339,17 @@ body[data-motion="paused"] *, body[data-motion="paused"] *::before, body[data-mo
     var(--round-color);
   box-shadow: inset -7px -9px 13px #7f3a5e3b, inset 8px 7px 11px #ffffff75, 0 5px 11px #7b38522e;
 }
-.floating-bubble > img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; animation: bubble-heartbeat 2.7s ease-in-out var(--bob-delay) infinite; transition: filter .2s; }
-.floating-bubble.star-bubble > img { filter: drop-shadow(0 5px 7px #d39b2840); }
-.floating-bubble.gift-bubble > img { filter: drop-shadow(0 5px 7px #9956ad40); }
+.floating-bubble > img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; transition: filter .2s; }
+.floating-bubble.star-bubble > img { filter: brightness(var(--rhythm-glow, 1)) drop-shadow(0 5px 7px #d39b2840); }
+.floating-bubble.gift-bubble > img { filter: brightness(var(--rhythm-glow, 1)) drop-shadow(0 5px 7px #9956ad40); }
 .floating-bubble.star-bubble:hover, .floating-bubble.star-bubble:focus-visible { filter: drop-shadow(0 0 8px #f4c95f) drop-shadow(0 6px 10px #d39b2860); }
 .floating-bubble.gift-bubble:hover, .floating-bubble.gift-bubble:focus-visible { filter: drop-shadow(0 0 8px #d497e8) drop-shadow(0 6px 10px #9956ad60); }
 .floating-bubble.over-control { opacity: .16; }
 .floating-bubble.is-popping { pointer-events: none; animation: bubble-pop .42s ease-out forwards; opacity: 0; }
-.scene-entrance .floating-bubble { animation-duration: 1.5s; }
 @media (max-width: 540px) { .floating-bubble { font-size: clamp(27px, 8vw, 46px); } }
 
 /* Las burbujas viven en el fondo y la interfaz conserva una capa de lectura encima. */
 .site-header, main, .mascot-dock, .site-footer { position: relative; z-index: 2; }
-@media (prefers-reduced-motion: reduce) { .scene-entrance .floating-bubble { animation: none; } }
 
 /* El cierre transforma los recuerdos en un viaje de cumpleaños de treinta segundos. */
 .birthday-wish { max-width: 660px; margin: 34px auto 0; padding: clamp(28px, 5vw, 48px); border: 1px solid #dca2be; border-radius: 24px; background: radial-gradient(circle at 50% 0, #fff7d9, #fff0f7 65%, #fffafd); box-shadow: 0 18px 55px #b8457522, inset 0 0 0 5px #ffffff8c; }
